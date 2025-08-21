@@ -30,6 +30,7 @@ export default function TablaConFiltro() {
   const filtradas = useMemo(() => {
     const texto = q.trim().toLowerCase();
     return rows.filter((c) => {
+      // filtrar filas , si no contiene texto o en estado muestra todo deja pasar, sino filtra
       const okTexto  = texto === "" ? true : (c.paciente||"").toLowerCase().includes(texto);
       const okEstado = fEstado === "todos" ? true : (c.estado||"").toLowerCase().includes(fEstado);
       return okTexto && okEstado;
