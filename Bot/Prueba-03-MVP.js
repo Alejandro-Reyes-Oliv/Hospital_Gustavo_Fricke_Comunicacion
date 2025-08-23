@@ -1,7 +1,7 @@
 var myHeaders = new Headers();
 myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
 
-var celular = "56955333737"; // Número del paciente
+var celular = "+56955333737"; // Número del paciente
 var instancia = "instance138353";
 var token = "4xoon1ca7tecmn9h";
 
@@ -10,7 +10,10 @@ var bodyMensaje = "Hola Alejandro Reyes, tu cita médica con el Dr. Ignacio Teno
 
 var urlencoded = new URLSearchParams();
 urlencoded.append("token", token);
-urlencoded.append("to", `%2B${celular}`);
+
+//urlencoded.append("to", `%2B${celular}`);
+urlencoded.append("to",celular);
+
 urlencoded.append("body", bodyMensaje);
 
 var requestOptions = {
