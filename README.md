@@ -3,6 +3,7 @@ Changelog:
 + Proyecto Chen - /FrontEnd
 - dump files
 + rules
+
 ToDo (Sprint 01):
 Sprint Goal: Creacion del primer mvp conteniendo el apartado visual mas importante
 - Creacion de vista administrador de citas + funcionalidad visual de los botones (sin concexion al backend).
