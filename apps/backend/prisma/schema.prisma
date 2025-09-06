@@ -1,0 +1,136 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Estados reales que vi en tu Excel (REALIZADO, NO SE PRESENTÓ, NO REALIZADO, ADMITIDO)
+enum EstadoCita {
+  REALIZADO
+  NO_SE_PRESENTO
+  NO_REALIZADO
+  ADMITIDO
+}
+
+/// Sexo en el Excel: MUJER / HOMBRE
+enum Sexo {
+  MUJER
+  HOMBRE
+}
+
+/// Tabla de pacientes (anonimizados)
+model Paciente {
+  id              String  @id @default(cuid())
+  idPacienteExcel String  @unique // ID_PACIENTE del Excel (ej: "Paciente_0001")
+  sexo            Sexo? // SEXO
+  edadTexto       String? // EDAD (viene como "68 Años 9 Meses 16 Dias")
+  comuna          String? // COMUNA
+  provincia       String? // PROVINCIA
+  region          String? // REGION
+
+  // Teléfonos (en Excel: FONO_FIJO, FONO_MOVIL, FONO_RECADOS)
+  telefonoFijo    String?
+  telefonoMovil   String?
+  telefonoRecados String?
+
+  // Previsión/plan si te sirve luego para segmentar
+  prevision String? // PREVISION
+  plan      String? // PLAN
+
+  // Establecimiento/Policlínico (del paciente en el Excel)
+  establecimiento String? // ESTABLECIMIENTO
+  policlinico     String? // POLICLINICO
+
+  citas         Cita[] // relación 1:N
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+}
+
+/// Tabla de citas derivada de columnas de agenda del Excel
+model Cita {
+  id         String   @id @default(cuid())
+  pacienteId String
+  paciente   Paciente @relation(fields: [pacienteId], references: [id])
+
+  idLe      String? // ID_LE
+  tipoLe    String? // TIPO_LE
+  estadoSic String? // ESTADO_SIC
+
+  // Datos de agenda
+  folio                 String? // FOLIO
+  prestacion            String? // PRESTACION
+  especialidadAgenda    String? // ESPECIALIDAD_AGENDA
+  profesionalAgendaRut  String? // RUT_PROFESIONAL_AGENDA
+  profesionalAgenda     String? // PROFESIONAL_AGENDA
+  establecimientoAgenda String? // ESTABLECIMIENTO_AGENDA
+  policlinicoAgenda     String? // POLICLINICO_AGENDA
+  box                   String? // BOX
+  origen                String? // ORIGEN (si te sirve)
+
+  // Estado y motivos
+  estadoCita        EstadoCita? // ESTADO_CITA
+  motivoCancelacion String? // MOTIVO_CANCELACION
+  sobrecupo         Boolean? // SOBRECUPO (si es "SI"/"NO", lo parseamos a boolean)
+
+  // Fecha y hora: combinamos FECHA_CITA + HORA_CITA en un DateTime
+  fechaHoraCita DateTime?
+
+  // Campos GES y clínicos (por si los usas luego)
+  diagnostico   String? // DIAGNOSTICO
+  problemaSalud String? // PROBLEMA_SALUD
+  ges           String? // GES
+  etapaGes      String? // ETAPA_GES
+  destinoAlta   String? // DESTINO_ALTA
+
+  // Meta
+  observaciones String? // OBSERVACIONES
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  hashFila String? @unique // ← para deduplicar
+
+  @@index([pacienteId])
+  @@index([fechaHoraCita])
+  @@index([estadoCita])
+}
+
+/// Log opcional para trazabilidad del import
+model ImportLog {
+  id           String   @id @default(cuid())
+  fuente       String // "excel"
+  archivo      String // nombre del archivo importado
+  fila         Int // número de fila en el Excel (1-based)
+  status       String // "OK" | "ERROR"
+  errorMensaje String?
+  creadoEn     DateTime @default(now())
+}
+
+// ===== Staging: aterrizaje crudo desde Excel =====
+model StgCita {
+  id            Int       @id @default(autoincrement()) // PK auto
+  importBatchId Int // id de lote de importación
+  raw           Json // fila original (tal cual Excel)
+  telefono      String?   @db.VarChar(32) // teléfono normalizado (si se pudo)
+  fecha         DateTime? // fecha parseada (sin hora si no se pudo)
+  horaTexto     String? // hora como texto (si no la pudimos parsear con certeza)
+  warnings      Json? // avisos no críticos (ej: hora ambigua)
+  createdAt     DateTime  @default(now()) // timestamp de inserción
+
+  @@index([importBatchId])
+  @@index([telefono])
+}
+
+model StgCitaError {
+  id            Int      @id @default(autoincrement()) // PK auto
+  importBatchId Int // lote
+  raw           Json // fila original
+  motivo        String // por qué falló (regla dura)
+  campos        Json? // detalle de campos problemáticos
+  createdAt     DateTime @default(now())
+
+  @@index([importBatchId])
+}
