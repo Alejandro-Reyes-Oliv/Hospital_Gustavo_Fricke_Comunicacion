@@ -1,0 +1,24 @@
+﻿import { useEffect, useState } from 'react';
+import { listMedicos } from '../services/medicos';
+
+
+export default function MedicoSelector({ value, onChange, placeholder='Asignar mÃ©dico' }){
+const [q, setQ] = useState('');
+const [items, setItems] = useState([]);
+
+
+useEffect(()=>{ (async()=>{ setItems(await listMedicos({ q })); })(); }, [q]);
+
+
+return (
+<div className="medico-selector" style={{display:'flex', gap:8}}>
+<input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar mÃ©dico" />
+<select value={value||''} onChange={e=>onChange?.(Number(e.target.value)||null)}>
+<option value="">{placeholder}</option>
+{items.map(m=> (
+<option key={m.id} value={m.id}>{m.nombre} â€” {m.especialidad}</option>
+))}
+</select>
+</div>
+);
+}

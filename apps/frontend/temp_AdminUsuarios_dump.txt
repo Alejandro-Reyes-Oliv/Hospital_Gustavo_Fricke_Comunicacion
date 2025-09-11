@@ -1,0 +1,50 @@
+﻿import { useEffect, useState } from 'react';
+<thead>
+<tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Activo</th><th>Acciones</th></tr>
+</thead>
+<tbody>
+{rows.map(r=> (
+<tr key={r.id}>
+<td>{r.nombre}</td>
+<td>{r.email}</td>
+<td>{r.role}</td>
+<td>{r.activo? 'SÃ­':'No'}</td>
+<td style={{display:'flex', gap:8}}>
+<button onClick={()=>setModal({mode:'edit', data:r})}>Editar</button>
+<button onClick={async()=>{ await toggleActivo(r.id); refresh(); }}>
+{r.activo?'Desactivar':'Activar'}
+</button>
+</td>
+</tr>
+))}
+</tbody>
+</table>
+
+
+{modal && <UsuarioForm modal={modal} onClose={()=>setModal(null)} onSave={onSave}/>}
+</div>
+);
+}
+
+
+function UsuarioForm({ modal, onClose, onSave }){
+const [f, setF] = useState(modal.data);
+return (
+<div style={{position:'fixed', inset:0, background:'#0008', display:'grid', placeItems:'center'}}>
+<div style={{background:'#fff', padding:16, borderRadius:8, minWidth:380, display:'grid', gap:8}}>
+<h3>{modal.mode==='new'? 'Nuevo operario':'Editar operario'}</h3>
+<input value={f.nombre} onChange={e=>setF({...f, nombre:e.target.value})} placeholder="Nombre"/>
+<input value={f.email} onChange={e=>setF({...f, email:e.target.value})} placeholder="Email"/>
+<input value={f.role} disabled />
+<label style={{display:'flex', gap:8, alignItems:'center'}}>
+<input type="checkbox" checked={!!f.activo} onChange={e=>setF({...f, activo:e.target.checked})}/>
+Activo
+</label>
+<div style={{display:'flex', gap:8, justifyContent:'flex-end'}}>
+<button onClick={onClose}>Cancelar</button>
+<button onClick={()=>onSave(f)}>Guardar</button>
+</div>
+</div>
+</div>
+);
+}

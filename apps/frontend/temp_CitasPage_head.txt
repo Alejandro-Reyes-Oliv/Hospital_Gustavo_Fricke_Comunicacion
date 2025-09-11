@@ -1,0 +1,151 @@
+﻿import { useEffect, useMemo, useState } from "react";
+import { listCitas, addAppointment, updateStatus, sendBot } from "../services/citas";
+import FiltersBar from "../components/FilterBar";
+import AppointmentsTable from "../components/TablaCita";
+import NewAppointmentModal from "../components/NuevaCitaModal";
+import useSelection from "../hooks/useSelection";
+
+export default function AppointmentsPage() {
+  const [rows, setRows] = useState([]);
+  const [q, setQ] = useState("");
+  const [fEstado, setFEstado] = useState("todos");
+  const [fEsp, setFEsp] = useState("todas");
+  const [loading, setLoading] = useState(true);
+  const [showNew, setShowNew] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [showRut, setShowRut] = useState(false);
+  const [sendingBot, setSendingBot] = useState(false);
+
+  const selApi = useSelection();
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const data = await listCitas();
+      setRows(data);
+      setLoading(false);
+    })();
+  }, []);
+
+  // opciones Ãºnicas de especialidad
+  const especialidades = useMemo(() => {
+    const set = new Set(rows.map(r => r.especialidadMedico).filter(Boolean));
+    return Array.from(set).sort();
+  }, [rows]);
+
+  const filtradas = useMemo(() => {
+    const texto = q.trim().toLowerCase();
+
+  
+
+    return rows.filter((c) => {
+      const okTexto = texto === "" ? true : (
+        (c.nombrePaciente || "").toLowerCase().includes(texto) ||
+        (c.rut || "").toLowerCase().includes(texto) ||
+        String(c.telefono || "").toLowerCase().includes(texto)
+      );
+
+      const okEstado = fEstado === "todos"
+        ? true
+        : (c.estadoCita || "").toLowerCase().includes(fEstado);
+
+      const okEsp = fEsp === "todas"
+        ? true
+        : (c.especialidadMedico || "") === fEsp;
+
+      return okTexto && okEstado && okEsp;
+    });
+  }, [rows, q, fEstado, fEsp]);
+
+  const allFilteredSelected = filtradas.length > 0 && filtradas.every(r => selApi.isSelected(r.id));
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) selApi.removeMany(filtradas.map(r => r.id));
+    else selApi.setMany(filtradas.map(r => r.id));
+  };
+
+ const onSendBot = async () => {
+  const ids = selApi.values;
+  if (!ids.length) return;
+  try {
+    setSendingBot(true);
+    setMsg("Enviando botâ€¦");
+    await sendBot(ids);
+    setMsg(`Bot enviado a ${ids.length} paciente(s)`);
+    selApi.clear();              // â† limpiar selecciÃ³n aquÃ­
+  } finally {
+    setSendingBot(false);
+  }
+};
+
+  const onQuickStatus = async (status) => {
+    const ids = selApi.values;
+    if (!ids.length) return;
+    await updateStatus(ids, status);
+    const refreshed = await listCitas();
+    setRows(refreshed);
+    setMsg(`Estado actualizado a "${status}" para ${ids.length} selecciÃ³n(es)`);
+    selApi.clear();
+  };
+
+  const onCreate = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+
+    const payload = {
+      nombrePaciente: fd.get("nombrePaciente"),
+      rut: fd.get("rut"),
+      fechaCita: fd.get("fechaCita"),
+      nombreMedico: fd.get("nombreMedico"),
+      especialidadMedico: fd.get("especialidadMedico"),
+      telefono: fd.get("telefono"),
+      estadoCita: fd.get("estadoCita") || "pendiente",
+    };
+
+    await addAppointment(payload);
+    const refreshed = await listCitas();
+    setRows(refreshed);
+    setShowNew(false);
+    setMsg("Nueva cita agregada");
+    e.currentTarget.reset();
+  };
+
+  if (loading) return <div className="p-4">Cargandoâ€¦</div>;
+
+  return (
+    <div className="space-y-4">
+      <FiltersBar
+        q={q}
+        onQChange={setQ}
+        fEstado={fEstado}
+        onEstadoChange={setFEstado}
+        fEsp={fEsp}
+        onEspChange={setFEsp}
+        especialidades={especialidades}
+        selectedCount={selApi.size}
+        onNewClick={() => setShowNew(true)}
+        onSendBot={onSendBot}
+        onQuickStatus={onQuickStatus}
+        showRut={showRut}
+        onToggleRut={() => setShowRut(v => !v)}
+      />
+
+      {msg && <div className="text-sm text-gray-600">{msg}</div>}
+      <div className="text-sm text-gray-600">{filtradas.length} resultados</div>
+
+      <AppointmentsTable
+        rows={filtradas}
+        allSelected={allFilteredSelected}
+        onToggleAll={toggleSelectAll}
+        isSelected={selApi.isSelected}
+        onToggleRow={selApi.toggle}
+        showRut={showRut}
+      />
+
+      <NewAppointmentModal
+        open={showNew}
+        onClose={() => setShowNew(false)}
+        onCreate={onCreate}
+      />
+    </div>
+  );
+}
