@@ -1,26 +1,20 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import { logger } from './config/logger.js';
-import router from './routes/index.js';
-
-dotenv.config();
+import express from "express";
+import cors from "cors";
+import { router as doctorRouter } from "./routes/doctor.routes.js";
+import { router as citaRouter } from "./routes/cita.routes.js";
+import { errorMiddleware } from "./middlewares/error.middleware.js";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Logging sencillo de cada request
-app.use((req, _res, next) => {
-  logger.info({ method: req.method, url: req.url }, 'incoming request');
-  next();
-});
+app.get("/api/health", (req, res) => res.json({ ok: true }));
+app.get('/', (_req, res) => res.json({ name: 'HGF API', status: 'ok' }));
 
-app.use('/api', router);
 
-// Health
-app.get('/health', (_req, res) => {
-  res.json({ ok: true, service: 'backend-hgf' });
-});
+app.use("/api/doctores", doctorRouter);
+app.use("/api/citas", citaRouter);
+
+app.use(errorMiddleware);
 
 export default app;

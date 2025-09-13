@@ -1,24 +1,34 @@
 {
   "name": "backend-hgf",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend Hospital Gustavo Fricke - API de doctores, pacientes y citas",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
-    "build": "echo \"(sin build)\"",
     "start": "node src/server.js",
-    "prisma:studio": "npx prisma studio",
-    "prisma:migrate": "npx prisma migrate dev",
+    "build": "echo \"(sin build)\"",
+    "test": "echo \"(sin tests por ahora)\" && exit 0",
+
+    "// ------------------------": "——— Prisma ———",
     "prisma:generate": "npx prisma generate",
-    "import:staging": "node src/db/import_excel_to_staging.js"
+    "prisma:migrate": "npx prisma migrate dev",
+    "prisma:studio": "npx prisma studio",
+    "prisma:reset": "npx prisma migrate reset --force",
+
+    "// ------------------------": "——— Utilidades de datos ———",
+    "import:staging": "node src/db/import_excel_to_staging.js",
+
+    "// ------------------------": "——— Flujos del proyecto ———",
+    "flow:doctores": "node scripts/demo_flow_create_doctors.js",
+    "flow:citas": "node scripts/demo_flow_create_appointment.js",
+    "flow:bot": "node scripts/demo_flow_send_reminder.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^6.15.0",
+    "@prisma/client": "^6.16.1",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.2",
@@ -26,10 +36,14 @@
     "libphonenumber-js": "^1.12.15",
     "pino": "^9.9.0",
     "pino-pretty": "^13.1.1",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "zod": "^4.1.8"
   },
   "devDependencies": {
     "nodemon": "^3.1.10",
-    "prisma": "^6.15.0"
+    "prisma": "^6.16.1"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   }
 }
