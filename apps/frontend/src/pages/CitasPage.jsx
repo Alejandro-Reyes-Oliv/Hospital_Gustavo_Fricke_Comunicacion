@@ -1,11 +1,13 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { listCitas, addAppointment, updateStatus, sendBot } from "../services/citas";
 import FiltersBar from "../components/FilterBar";
 import AppointmentsTable from "../components/TablaCita";
 import NewAppointmentModal from "../components/NuevaCitaModal";
+import { listMedicos } from "../services/medicos";
 import useSelection from "../hooks/useSelection";
 
 export default function AppointmentsPage() {
+  const [medicos, setMedicos] = useState([]);
   const [rows, setRows] = useState([]);
   const [q, setQ] = useState("");
   const [fEstado, setFEstado] = useState("todos");
@@ -27,7 +29,7 @@ export default function AppointmentsPage() {
     })();
   }, []);
 
-  // opciones Ãºnicas de especialidad
+  // opciones únicas de especialidad
   const especialidades = useMemo(() => {
     const set = new Set(rows.map(r => r.especialidadMedico).filter(Boolean));
     return Array.from(set).sort();
@@ -68,10 +70,10 @@ export default function AppointmentsPage() {
   if (!ids.length) return;
   try {
     setSendingBot(true);
-    setMsg("Enviando botâ€¦");
+    setMsg("Enviando bot…");
     await sendBot(ids);
     setMsg(`Bot enviado a ${ids.length} paciente(s)`);
-    selApi.clear();              // â† limpiar selecciÃ³n aquÃ­
+    selApi.clear();              // ← limpiar selección aquí
   } finally {
     setSendingBot(false);
   }
@@ -83,7 +85,7 @@ export default function AppointmentsPage() {
     await updateStatus(ids, status);
     const refreshed = await listCitas();
     setRows(refreshed);
-    setMsg(`Estado actualizado a "${status}" para ${ids.length} selecciÃ³n(es)`);
+    setMsg(`Estado actualizado a "${status}" para ${ids.length} selección(es)`);
     selApi.clear();
   };
 
@@ -109,7 +111,18 @@ export default function AppointmentsPage() {
     e.currentTarget.reset();
   };
 
-  if (loading) return <div className="p-4">Cargandoâ€¦</div>;
+  
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await listMedicos();
+        setMedicos(Array.isArray(data.items) ? data.items : data);
+      } catch (e) {
+        console.error('No se pudo cargar médicos', e);
+      }
+    })();
+  }, []);
+if (loading) return <div className="p-4">Cargando…</div>;
 
   return (
     <div className="space-y-4">
@@ -142,6 +155,7 @@ export default function AppointmentsPage() {
       />
 
       <NewAppointmentModal
+        medicos={medicos}
         open={showNew}
         onClose={() => setShowNew(false)}
         onCreate={onCreate}

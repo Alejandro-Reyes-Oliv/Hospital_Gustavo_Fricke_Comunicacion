@@ -36,7 +36,7 @@ export async function listCitas() {
   if (cached) return normalizeArray(cached);
 
   // 2) No hay cache: cargar seed (puede ser el viejo /citas.json)
-  const r = await fetch("/citas.json");
+  const r = await fetch("/mock/citas.json");
   const data = await r.json();
 
   const normalized = normalizeArray(data);
