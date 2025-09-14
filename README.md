@@ -1,27 +1,21 @@
-<<<<<<< HEAD
-Changelog:
-+ Proyecto Chen - /FrontEnd
-- dump files
-+ rules
+### Requisitos
+- Node 20+ / npm
+- Postgres 15/16
+- (PowerShell) Set-ExecutionPolicy RemoteSigned -Scope CurrentUser o usar npm.cmd
 
-ToDo (Sprint 01):
-Sprint Goal: Creacion del primer mvp conteniendo el apartado visual mas importante
-- Creacion de vista administrador de citas + funcionalidad visual de los botones (sin concexion al backend).
-- Pruebas de API de WhatsApp.
-- Creacion parcial del backend (Conexion a base de datos). 
+### backend
+npm run prisma:gen
+npm run prisma:mig
+npm run db:seed
+npm run dev:back
 
-ToDo (Sprint 02):
-Sprint Goal: Mejora del mvp añadiendo apartados visuales como la vista de gestion de medicos y pestaña de login
-- Creacion de vista administrador de gestion de personal medico (sin conexion a backend)
-- Creacion de vista login (sin conexion a backend)
-- Avanze en el backend (cargado de base de datos con datos de prueba y creacion de rutas de API)
+### frontend
+npm run dev:front
 
-Rules:
-1) Cada uno trabaja en su branch [Yisus integración, Conejo Backend, Vicho Api, Chen front, Ale integracion y QoL]
-2) No hacer merge hacia el main (Yisus revisa[integración])
-3) Formato de msj commit: Tema concreto - Features [Contents];
-ejemplo: "Validaciones - Regex [Rut, email]"
-=======
-# Repositorio proyecto sistema de comunicacion Hostpital Gustavo Fricke
+### bot-gateway (opcional)
+npm run dev:bot
 
->>>>>>> 325e69b0bedf241bd5b51ed7e7fb8042d9a4c87b
+### .Env
+- apps/backend/.env → DATABASE_URL=..., PORT=8000
+- apps/frontend/.env → VITE_API_BASE_URL=http://localhost:8000
+- apps/bot-gateway/.env → PORT, META_* (no se commitea)

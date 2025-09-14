@@ -15,6 +15,7 @@
     "prisma:migrate": "npx prisma migrate dev",
     "prisma:studio": "npx prisma studio",
     "prisma:reset": "npx prisma migrate reset --force",
+    "db:seed": "prisma db seed",
 
     "// ------------------------": "——— Utilidades de datos ———",
     "import:staging": "node src/db/import_excel_to_staging.js",

@@ -1,5 +1,13 @@
 {
-  "dependencies": {
-    "node-fetch": "^3.3.2"
+  "private": true,
+  "name": "contacto-fricke-monorepo",
+  "version": "0.0.0",
+  "scripts": {
+    "dev:back": "npm --prefix apps/backend run dev",
+    "dev:front": "npm --prefix apps/frontend run dev",
+    "dev:bot": "npm --prefix apps/bot-gateway run dev",
+    "prisma:gen": "npm --prefix apps/backend run prisma:generate",
+    "prisma:mig": "npm --prefix apps/backend run prisma:migrate",
+    "db:seed": "npm --prefix apps/backend run db:seed"
   }
 }
