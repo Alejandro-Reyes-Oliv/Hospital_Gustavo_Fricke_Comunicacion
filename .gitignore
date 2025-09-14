@@ -1,0 +1,23 @@
+# Node
+node_modules/
+dist/
+coverage/
+*.log
+
+# Env
+.env
+.env.*.local
+apps/*/.env
+apps/*/.env.*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+
+# Prisma
+**/.prisma
+**/prisma/dev.db
+
+# Build
+**/build
+**/out
