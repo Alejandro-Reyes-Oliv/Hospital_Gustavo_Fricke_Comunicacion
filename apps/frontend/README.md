@@ -1,27 +1,12 @@
-<<<<<<< HEAD
-Changelog:
-+ Proyecto Chen - /FrontEnd
-- dump files
-+ rules
+# React + Vite
 
-ToDo (Sprint 01):
-Sprint Goal: Creacion del primer mvp conteniendo el apartado visual mas importante
-- Creacion de vista administrador de citas + funcionalidad visual de los botones (sin concexion al backend).
-- Pruebas de API de WhatsApp.
-- Creacion parcial del backend (Conexion a base de datos). 
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-ToDo (Sprint 02):
-Sprint Goal: Mejora del mvp añadiendo apartados visuales como la vista de gestion de medicos y pestaña de login
-- Creacion de vista administrador de gestion de personal medico (sin conexion a backend)
-- Creacion de vista login (sin conexion a backend)
-- Avanze en el backend (cargado de base de datos con datos de prueba y creacion de rutas de API)
+Currently, two official plugins are available:
 
-Rules:
-1) Cada uno trabaja en su branch [Yisus integración, Conejo Backend, Vicho Api, Chen front, Ale integracion y QoL]
-2) No hacer merge hacia el main (Yisus revisa[integración])
-3) Formato de msj commit: Tema concreto - Features [Contents];
-ejemplo: "Validaciones - Regex [Rut, email]"
-=======
-# Repositorio proyecto sistema de comunicacion Hostpital Gustavo Fricke
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
->>>>>>> 325e69b0bedf241bd5b51ed7e7fb8042d9a4c87b
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
