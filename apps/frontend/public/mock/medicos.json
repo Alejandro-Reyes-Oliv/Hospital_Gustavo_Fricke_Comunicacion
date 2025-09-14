@@ -1,0 +1,20 @@
+[
+  {
+    "id": "m1",
+    "nombre": "Dra. Valentina Rojas",
+    "especialidad": "Cardiolog\u00eda",
+    "email": "vroj@hospital.cl",
+    "telefono": "+56 9 1234 5678",
+    "estado": "activo",
+    "createdAt": "2025-01-10T12:00:00.000Z"
+  },
+  {
+    "id": "m2",
+    "nombre": "Dr. Ricardo P\u00e9rez",
+    "especialidad": "Traumatolog\u00eda",
+    "email": "rperez@hospital.cl",
+    "telefono": "+56 9 9876 5432",
+    "estado": "inactivo",
+    "createdAt": "2025-02-01T10:30:00.000Z"
+  }
+]
