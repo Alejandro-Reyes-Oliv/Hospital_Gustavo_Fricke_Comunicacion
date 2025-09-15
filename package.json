@@ -9,5 +9,8 @@
     "prisma:gen": "npm --prefix apps/backend run prisma:generate",
     "prisma:mig": "npm --prefix apps/backend run prisma:migrate",
     "db:seed": "npm --prefix apps/backend run db:seed"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.87.4"
   }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import AppointmentsPage from "./pages/CitasPage";
+import AppointmentsPage from "./pages/AppointmentsPage.jsx";
 import UsersPage from "./pages/UsersPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import { getCurrentUser, login, logout, isAdmin } from "./services/auth.js";
