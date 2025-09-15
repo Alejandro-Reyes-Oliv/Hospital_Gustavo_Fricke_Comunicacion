@@ -4,10 +4,10 @@
 - (PowerShell) Set-ExecutionPolicy RemoteSigned -Scope CurrentUser o usar npm.cmd
 
 ### backend
-npm run prisma:gen
-npm run prisma:mig
-npm run db:seed
-npm run dev:back
+- npm run prisma:gen
+- npm run prisma:mig
+- npm run db:seed
+- npm run dev:back
 
 ### frontend
 npm run dev:front
