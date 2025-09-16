@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import AppointmentsPage from "./pages/AppointmentsPage.jsx";
 import UsersPage from "./pages/UsersPage.jsx";
+import MedicosPage from "./pages/MedicosPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import { getCurrentUser, login, logout, isAdmin } from "./services/auth.js";
 
@@ -67,24 +68,19 @@ export default function App() {
       <div className="border-b px-4">
         {isAdmin(user) && (
           <div className="flex gap-2">
-            <button
-              className={"px-3 py-2 " + (tab === "citas" ? "border-b-2 border-black" : "")}
-              onClick={() => setTab("citas")}
-            >
-              Citas
-            </button>
-            <button
-              className={"px-3 py-2 " + (tab === "usuarios" ? "border-b-2 border-black" : "")}
-              onClick={() => setTab("usuarios")}
-            >
-              Usuarios
-            </button>
+            <button onClick={() => setTab("citas")}   className={tab==="citas"   ? "font-semibold" : ""}>Citas</button>
+            <button onClick={() => setTab("usuarios")} className={tab==="usuarios" ? "font-semibold" : ""}>Usuarios</button>
+            <button onClick={() => setTab("medicos")} className={tab==="medicos" ? "font-semibold" : ""}>Médicos</button>
           </div>
         )}
       </div>
 
       <div className="p-4">
-        {tab === "usuarios" && isAdmin(user) ? <UsersPage /> : <AppointmentsPage />}
+        {tab === "citas" && <AppointmentsPage />}
+        {tab === "usuarios" && (
+          isAdmin(user) ? <UsersPage /> : null
+        )}
+        {tab === "medicos" && <MedicosPage />}
       </div>
     </div>
   );

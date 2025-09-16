@@ -1,5 +1,7 @@
 // src/services/citas.p2.js
+
 import api from '../lib/apiClient.js'
+api.baseURL ||= 'http://localhost:8080';
 import { mapCitaApiToDTO } from '../lib/dto.js'
 import { STATUS } from '../lib/constants.js'
 import * as local from './citas.js'
@@ -131,4 +133,25 @@ function normalizeStatus(s) {
   if (v.includes('confirm')) return STATUS.CONFIRMADA
   if (v.includes('cancel')) return STATUS.CANCELADA
   return STATUS.PENDIENTE
+}
+
+export async function deleteAppointments(ids = []) {
+  if (!Array.isArray(ids) || !ids.length) return 0;
+
+  // Si hay backend, eliminar de a uno (o haz un endpoint bulk si quieres optimizar)
+  if (api.baseURL) {
+    let count = 0;
+    for (const id of ids) {
+      const { ok } = await api.delete(`/api/appointments/${id}`);
+      if (ok) count++;
+    }
+    return count;
+  }
+
+  // Fallback localStorage: lee, filtra y persiste usando resetCitas
+  const rows = await local.listCitas();
+  const idsSet = new Set(ids.map((x) => String(x)));
+  const remaining = rows.filter((r) => !idsSet.has(String(r.id)));
+  local.resetCitas(remaining);
+  return ids.length - (rows.length - remaining.length);
 }
