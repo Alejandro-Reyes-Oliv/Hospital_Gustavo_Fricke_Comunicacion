@@ -14,33 +14,26 @@ export async function listCitas(params = {}) {
     const { ok, data, error } = await api.get('/api/appointments', {
       query: normalizeQuery(params),
     })
-    if (!ok) {
-      console.warn('GET /api/appointments falló, usando fuente local:', error)
-      return local.listCitas(params)
-    }
-    const rows = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : []
-    return rows.map(mapCitaApiToDTO)
+
+   if (!ok) {
+     console.warn('GET /api/appointments falló, NO uso mock cuando hay backend. Devuelvo []. Error:', error)
+     return []
+   }
+
+    // ok
+    const items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : []
+    return items.map(mapCitaApiToDTO)
   }
 
-  // Preferimos mock JSON para dev; persistimos a localStorage para consistencia
+  // sin backend → usar local/mock
   try {
-    const r = await fetch('/mock/citas.json', { cache: 'no-store' })
-    if (r.ok) {
-      const json = await r.json()
-      const rows = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : []
-      const mapped = rows.map(mapCitaApiToDTO)
-      try {
-        local.resetCitas(mapped)
-      } catch (e) {
-        console.warn('No se pudo sincronizar mock → localStorage:', e)
-      }
-      return mapped
-    }
-  } catch (e) {
-    console.warn('Mock /mock/citas.json no disponible, cayendo a localStorage', e)
+    const res = await fetch('/mock/citas.json')
+    const raw = await res.json()
+    const items = Array.isArray(raw?.items) ? raw.items : Array.isArray(raw) ? raw : []
+    return items.map(mapCitaApiToDTO)
+  } catch {
+    return local.listCitas()
   }
-
-  return local.listCitas(params)
 }
 
 /**
@@ -52,17 +45,17 @@ export async function addAppointment(newItem) {
     nombrePaciente: newItem.nombrePaciente ?? newItem.paciente,
     rut: newItem.rut || undefined,
     telefono: newItem.telefono || undefined,
-    fechaCita: newItem.fechaCita,
+    fechaCita: newItem.fechaCita,        // ISO recomendado
     medicoId: newItem.medicoId,
     estadoCita: normalizeStatus(newItem.estadoCita),
+    origin: "web",
   }
-  const { ok, data, error } = await api.post('/api/appointments', { body })
+  const { ok, data } = await api.post('/api/appointments', { body })
   if (!ok) {
-    console.warn('POST /api/appointments falló, usando fuente local:', error)
+    console.warn('POST /api/appointments falló, usando fuente local:')
     return local.addAppointment(newItem)
   }
-  const created = Array.isArray(data?.data) ? data.data[0] : data?.data || data
-  return created ? mapCitaApiToDTO(created) : null
+  return mapCitaApiToDTO(data)
 }
 
 /**

@@ -124,28 +124,48 @@ export default function AppointmentsPage() {
 };
 
   const onCreate = async (e) => {
-    e.preventDefault();
-    const formEl = e.currentTarget; 
-    const fd = new FormData(formEl);
-    
+  e.preventDefault();
+  const formEl = e.currentTarget;
+  const fd = new FormData(formEl);
 
-    const payload = {
-      nombrePaciente: fd.get("nombrePaciente"),
-      rut: fd.get("rut"),
-      fechaCita: fd.get("fechaCita"),
-      telefono: fd.get("telefono"),
-      estadoCita: fd.get("estadoCita") || "pendiente",
-      // Preferimos enviar medicoId; mantenemos campos UI opcionales
-      medicoId: fd.get("medicoId") || fd.get("doctorId") || "",
-      nombreMedico: fd.get("nombreMedico"),
-      especialidadMedico: fd.get("especialidadMedico"),
-    };
+ const nombrePaciente = (fd.get("nombrePaciente") || "").trim();
+ const medicoId = (fd.get("medicoId") || "").toString().trim();
+ const fechaRaw = fd.get("fechaCita");
+ // Si usas <input type="datetime-local">, viene como "YYYY-MM-DDTHH:mm"
+ // Convierte a ISO si es necesario:
+ const fechaCita = fechaRaw ? new Date(fechaRaw).toISOString() : "";
 
-    await addCita.mutateAsync(payload);
-    setShowNew(false);
-    setMsg("Nueva cita agregada");
-    formEl?.reset(); 
+ if (nombrePaciente.length < 2) {
+   alert("El nombre del paciente debe tener al menos 2 caracteres.");
+   return;
+ }
+ if (!fechaCita) {
+   alert("Debes seleccionar fecha/hora de la cita.");
+   return;
+ }
+ if (!medicoId) {
+   alert("Debes seleccionar un médico.");
+   return;
+ }
+
+  const payload = {
+   nombrePaciente,
+   rut: (fd.get("rut") || "").trim() || undefined,
+   fechaCita,
+   telefono: (fd.get("telefono") || "").trim() || undefined,
+   estadoCita: (fd.get("estadoCita") || "pendiente").toLowerCase(),
+   medicoId,
+   nombreMedico: (fd.get("nombreMedico") || "").trim() || undefined,
+   especialidadMedico: (fd.get("especialidadMedico") || "").trim() || undefined,
+   origin: "web", // por si tu service no lo agrega
   };
+
+  await addCita.mutateAsync(payload);
+  setShowNew(false);
+  setMsg("Nueva cita agregada");
+  formEl?.reset();
+};
+
 
   if (loadingCitas || loadingMedicos) return <div className="p-4">Cargando…</div>;
   if (errCitas) return <div className="p-4 text-red-600">Error al cargar citas</div>;
