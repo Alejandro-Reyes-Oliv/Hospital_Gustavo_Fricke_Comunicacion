@@ -8,7 +8,7 @@ import NewAppointmentModal from "../components/NuevaCitaModal";
 import useSelection from "../hooks/useSelection";
 
 // 🔽 hooks TanStack encima de los services
-import { useCitasList, useAddCita, useBulkStatus } from "../hooks/useCitasQuery";
+import { useCitasList, useAddCita, useBulkStatus, useBulkDeleteCitas } from "../hooks/useCitasQuery";
 import { useMedicosList } from "../hooks/useMedicosQuery";
 
 export default function AppointmentsPage() {
@@ -91,6 +91,7 @@ export default function AppointmentsPage() {
   // 🔽 Mutations
   const addCita = useAddCita();
   const bulk = useBulkStatus();
+  const delBulk = useBulkDeleteCitas();
 
   const onSendBot = async () => {
     const ids = selApi.values;
@@ -113,10 +114,20 @@ export default function AppointmentsPage() {
     setMsg(`Estado actualizado a "${status}" para ${ids.length} selección(es)`);
     selApi.clear();
   };
+  
+    const onDeleteSelected = async () => {
+  const ids = selApi.values;
+  if (!ids.length) return;
+  await delBulk.mutateAsync(ids);
+  setMsg(`Eliminadas ${ids.length} cita(s)`);
+  selApi.clear();
+};
 
   const onCreate = async (e) => {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
+    const formEl = e.currentTarget; 
+    const fd = new FormData(formEl);
+    
 
     const payload = {
       nombrePaciente: fd.get("nombrePaciente"),
@@ -133,7 +144,7 @@ export default function AppointmentsPage() {
     await addCita.mutateAsync(payload);
     setShowNew(false);
     setMsg("Nueva cita agregada");
-    e.currentTarget.reset();
+    formEl?.reset(); 
   };
 
   if (loadingCitas || loadingMedicos) return <div className="p-4">Cargando…</div>;
@@ -156,6 +167,7 @@ export default function AppointmentsPage() {
         onQuickStatus={onQuickStatus}
         showRut={showRut}
         onToggleRut={() => setShowRut((v) => !v)}
+        onDeleteSelected={onDeleteSelected}
       />
 
       {msg && <div className="text-sm text-gray-600">{msg}</div>}

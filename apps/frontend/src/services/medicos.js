@@ -30,3 +30,22 @@ export async function listMedicos({ search, page, pageSize, sort } = {}) {
   const rows = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : []
   return rows.map(mapDoctorApiToDTO)
 }
+
+export async function createDoctor(payload) {
+  if (api.baseURL) {
+    const { ok, data, error } = await api.post('/api/doctors', { body: payload });
+    if (!ok) throw new Error(error?.error?.message || 'Error al crear médico');
+    return data;
+  }
+  throw new Error('Sin backend: no se puede crear médico en mock');
+}
+
+export async function deleteDoctor(id) {
+  if (api.baseURL) {
+    const { ok, error } = await api.delete(`/api/doctors/${id}`);
+    if (!ok) throw new Error(error?.error?.message || 'Error al eliminar médico');
+    return true;
+  }
+  throw new Error('Sin backend: no se puede eliminar médico en mock');
+}
+
