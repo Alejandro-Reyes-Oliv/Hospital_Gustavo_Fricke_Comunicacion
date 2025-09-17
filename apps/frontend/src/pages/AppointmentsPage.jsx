@@ -23,7 +23,7 @@ export default function AppointmentsPage() {
 
   const selApi = useSelection();
 
-  // 🔽 Citas desde backend (o mocks según tu service)
+  // Citas desde backend (o mocks según tu service)
   const {
     data: citasData,
     isLoading: loadingCitas,
