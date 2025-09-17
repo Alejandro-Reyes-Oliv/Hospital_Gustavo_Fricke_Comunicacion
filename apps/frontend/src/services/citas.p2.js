@@ -10,30 +10,40 @@ import * as local from './citas.js'
  * LIST: backend si hay baseURL; si no, mock JSON → sync a localStorage; si falla, localStorage puro.
  */
 export async function listCitas(params = {}) {
-  if (api.baseURL) {
-    const { ok, data, error } = await api.get('/api/appointments', {
-      query: normalizeQuery(params),
-    })
+  const baseURL = import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:8080';
 
-   if (!ok) {
-     console.warn('GET /api/appointments falló, NO uso mock cuando hay backend. Devuelvo []. Error:', error)
-     return []
-   }
+  const query = new URLSearchParams();
+  if (params.search)   query.set('search', params.search);
+  if (params.estado)   query.set('estado', params.estado);
+  if (params.medicoId) query.set('medicoId', params.medicoId);
+  if (params.sort)     query.set('sort', params.sort);
+  if (params.from)     query.set('from', params.from);
+  if (params.to)       query.set('to', params.to);
 
-    // ok
-    const items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : []
-    return items.map(mapCitaApiToDTO)
+  // Asegura page/pageSize numéricos por defecto
+  query.set('page', String(params.page ?? 1));
+  query.set('pageSize', String(params.pageSize ?? 10));
+
+  const res = await fetch(`${baseURL}/api/appointments?${query.toString()}`);
+  if (!res.ok) {
+    // intenta leer mensaje útil
+    let msg = 'Error al listar citas';
+    try { const e = await res.json(); msg = e?.error?.message || msg; } catch {}
+    throw new Error(msg);
   }
 
-  // sin backend → usar local/mock
-  try {
-    const res = await fetch('/mock/citas.json')
-    const raw = await res.json()
-    const items = Array.isArray(raw?.items) ? raw.items : Array.isArray(raw) ? raw : []
-    return items.map(mapCitaApiToDTO)
-  } catch {
-    return local.listCitas()
-  }
+  const raw = await res.json();
+
+  // Normaliza: acepta {data:[...]} o {items:[...]}
+  const items = Array.isArray(raw?.items)
+    ? raw.items
+    : (Array.isArray(raw?.data) ? raw.data : []);
+
+  const total    = Number(raw?.total ?? 0);
+  const page     = Number(raw?.page ?? params.page ?? 1);
+  const pageSize = Number(raw?.pageSize ?? params.pageSize ?? 10);
+
+  return { items, total, page, pageSize };
 }
 
 /**

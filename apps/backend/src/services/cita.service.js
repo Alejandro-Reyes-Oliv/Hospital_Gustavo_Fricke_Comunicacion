@@ -27,7 +27,7 @@ export const CitaService = {
     });
   },
 
-  obtener: (id) =>
+  oftener: (id) =>
     prisma.cita.findUnique({ where: { id: Number(id) } }),
 
   crear: async (data) => {
@@ -50,11 +50,12 @@ export const CitaService = {
     }
 
     // 3) crear cita con snapshots
+    const estado = (data.estado ?? "pendiente").toLowerCase();
     const cita = await prisma.cita.create({
       data: {
         doctorId: data.doctorId,
         fecha_hora: new Date(data.fecha_hora),
-        estado: "pendiente",
+        estado,
         paciente_nombre: data.paciente_nombre,
         paciente_telefono: data.paciente_telefono,
         paciente_rut: data.paciente_rut ?? null,
