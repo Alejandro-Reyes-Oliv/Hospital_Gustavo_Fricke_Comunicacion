@@ -1,0 +1,23 @@
+### Recuperar todas las citas
+GET http://localhost:3000/citas
+
+### crear una cita
+POST http://localhost:3000/citas
+
+### Recuperar una cita por ID
+GET http://localhost:3000/citas/1
+
+### Eliminar una cita por ID
+DELETE http://localhost:3000/citas/1
+
+### Actualizar una cita por ID
+PATCH http://localhost:3000/citas/1
+
+### Recuperar citas por periodo
+GET http://localhost:3000/citas/periodo/2023-01-01_to_2023-12-31
+
+### Recuperar citas por medico ID
+GET http://localhost:3000/citas/medico/1
+
+### Recuperar citas por nombre del paciente
+GET http://localhost:3000/citas/paciente/Juan%20Perez

@@ -12,8 +12,12 @@ medicosRouter.post('/', medicoController.createMedico)
 medicosRouter.get('/:id', medicoController.getMedicoById)
 medicosRouter.delete('/:id', medicoController.deleteMedicoById)
 medicosRouter.patch('/:id', medicoController.updateMedicoById)
+// De aqui para abajo hay que refinar
+
 // Ver de como poder hacerlos con parametros
 // Faltaria una ruta que permita obtener medicos por especialidad
 medicosRouter.get('/especialidad/:especialidad', medicoController.getMedicosByEspecialidad)
 // Otra que permita obtener medicos por nombre
 medicosRouter.get('/nombre/:nombre', medicoController.getMedicosByNombre)
+
+medicosRouter.get('/estado/:estado', medicoController.getMedicoByEstado)

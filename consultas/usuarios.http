@@ -1,0 +1,21 @@
+### Obtener todos los usuarios
+GET http://localhost:3000/usuarios
+
+### Crear un nuevo usuario
+POST http://localhost:3000/usuarios
+
+### Obtener usuario por ID
+GET http://localhost:3000/usuarios/1
+
+### Borrar usuario por ID
+DELETE http://localhost:3000/usuarios/1
+
+### Actualizar usuario por ID
+PATCH http://localhost:3000/usuarios/1
+
+### Obtener usuarios por estado (activo, inactivo)
+GET http://localhost:3000/usuarios/estado/activo
+
+### Obtener usuarios por estado (activo, inactivo)
+GET http://localhost:3000/usuarios/estado/inactivo
+

@@ -1,0 +1,26 @@
+### Obtener todos los medicos
+GET http://localhost:3000/medicos
+### Crear medico
+POST http://localhost:3000/medicos
+
+### Obtener medico por ID
+GET http://localhost:3000/medicos/dcdd0fad-a94c-4810-8acc-5f108d3b18c3
+
+### Eliminar medico por ID
+DELETE http://localhost:3000/medicos/dcdd0fad-a94c-4810-8acc-5f108d3b18c3
+
+### Actualizar medico por ID
+PATCH http://localhost:3000/medicos/1
+
+
+### Obtener medicos por especialidad
+GET http://localhost:3000/medicos/especialidad/Cardiologia
+
+### Obtener medicos por nombre  
+GET http://localhost:3000/medicos/nombre/Juan
+
+### Obtener medicos por estado
+GET http://localhost:3000/medicos/estado/activo
+
+### Obtener medicos por estado
+GET http://localhost:3000/medicos/estado/inactivo

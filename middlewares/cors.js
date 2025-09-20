@@ -2,11 +2,13 @@
 // ----------------------------------Librerias--------------------------
 import cors from 'cors'
 
+process.loadEnvFile() // Esto hace que se carguen las variables de entorno del archivo .env en process.env #Asi no hay que usar librerias extras como dotenv
+
 // ----------------------------------Configuracion-----------------------
 // Esta es la lista de dominios que aceptamos/permitidos, si se necesita alguno mas, se añade aca
 const ACCEPTED_ORIGINS = [
-  'http://localhost:3000',
-  'http://localhost:5000',
+  `http://localhost:${process.env.AppPORT}`, // En esta linea agrege el puerto de la app (backend)
+  'http://localhost:5000', // Estos de aca son de ejemplo, de momento no se usan
   'http://localhost:8080'
 ]
 // Se exporta de una la funcion, sino habria que poner el export abajo

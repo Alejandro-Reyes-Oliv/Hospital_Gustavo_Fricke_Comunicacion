@@ -13,12 +13,14 @@ citasRouter.get('/:id', citaController.getCitaById)
 citasRouter.delete('/:id', citaController.deleteCitaById)
 citasRouter.patch('/:id', citaController.updateCitaById)
 
+// De aqui para abajo tengo que refinarlo, por ejemplo, para filtar por mas de una cosa, asi como el periodo y el estado juntos
+
 // Faltaria una ruta que permita obtener citas por periodo de tiempo, por ejemplo todas las citas entre dos fechas
-citasRouter.get('/periodo', citaController.getCitasByPeriodo)
+citasRouter.get('/periodo/:periodo', citaController.getCitasByPeriodo)
 // Otra que permita obtener las citas de un medico en especifico
 citasRouter.get('/medico/:medicoId', citaController.getCitasByMedicoId)
 // Otra que permita obtener las citas segun el paciente
-citasRouter.get('/paciente/:nombrePaciente', citaController.getCitasByPacienteId)
+citasRouter.get('/paciente/:nombrePaciente', citaController.getCitasByNombrePaciente)
 // Ver si se podria hacer con parametros opcionales, para que si no se pone nada, traiga todo, pero si se pone algo, filtre por eso
 // Tambien se podria hacer una que permita obtener las citas por estado (pendiente, completada, cancelada, etc), pero eso ya es mas avanzado y depende de como se quiera manejar el sistema
 // Tambien se podria hacer una que permita obtener las citas por especialidad medica, pero eso ya es mas avanzado y depende de como se quiera manejar el sistema

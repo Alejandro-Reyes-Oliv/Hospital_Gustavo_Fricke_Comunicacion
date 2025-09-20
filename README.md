@@ -11,10 +11,14 @@ Sprint Goal: Creacion del primer mvp conteniendo el apartado visual mas importan
 - Creacion parcial del backend (Conexion a base de datos). 
 
 ToDo (Sprint 02):
-Sprint Goal: Mejora del mvp añadiendo apartados visuales como la vista de gestion de medicos y pestaña de login
-- Creacion de vista administrador de gestion de personal medico (sin conexion a backend)
+Sprint Goal: Mejora del mvp añadiendo apartados visuales como la vista de gestion de medicos, pestaña de login y correcto funcionamiento del envio de mensajes via Api de WhatsApp.
+
+- Creacion de vista administrador de gestion de personal medico 
 - Creacion de vista login (sin conexion a backend)
-- Avanze en el backend (cargado de base de datos con datos de prueba y creacion de rutas de API)
+- Avanze en el backend (creacion de rutas de API)
+-Conexion de backend-frontend completa y testeada.
+-Integracion de Api de WhatsApp.
+
 
 Rules:
 1) Cada uno trabaja en su branch [Yisus integración, Conejo Backend, Vicho Api, Chen front, Ale integracion y QoL]
