@@ -1,7 +1,7 @@
 // Aca van los controladores (donde se procesan las peticiones) de los medicos
 // ---------------------------------Librerias--------------------------
 import { dbPool } from '../database/config.js' // Importa la configuracion de la base de datos
-import { validarMedicoID } from '../util/validador_id_db.js' // Importa el validador de ID para médico
+import { validarMedicoID, consultarEstadoMedicoID, validarNombreMedico } from '../util/validador_id_db.js' // Importa elos validadores basicos para médico
 // Falta crear e importar los validadores de los medicos
 
 // ---------------------------------Controlador--------------------------
@@ -9,6 +9,7 @@ export class medicoController {
   // - - - - - - - - - - - Obtener todos los medicos - - - - - - - - - - - - - - -
   // Este metodo obtiene todos los medicos de la base de datos
   // Ruta: /medicos/ (GET)
+  // Se debe manejar luego la paginacion
   static async getAllMedicos (req, res) {
     try {
       const results = await dbPool.query('SELECT * FROM medicos') // Aca se retornan todos los médicos evidentemente, se esta haciendo un Select *
@@ -21,10 +22,26 @@ export class medicoController {
   // - - - - - - - - - - - - Crear un nuevo medico - - - - - - - - - - - - - - -
   // Este metodo crea un nuevo medico en la base de datos
   // Ruta: /medicos/ (POST)
-  // Falta validar los datos que vienen en el req.body
+  // Falta validar los datos que vienen en el req.body (SCHEMA)
   static async createMedico (req, res) {
     console.log(req.body)
-    res.send('Aqui se crea un medico')
+    const id = req.body.idMedico
+    const nombre = req.body.nombreMedico
+    const especialidad = req.body.especialidad
+    const estado = req.body.estado || 'activo' // Si no viene el estado, por defecto es activo
+    // res.send('Aqui se crea un medico')
+    try {
+      const existeMedico = await validarNombreMedico(nombre) // Funcion que valida si el nombre del medico ya existe en la base de datos (util/validador_id_db.js)
+      console.log('Existemedico: ', existeMedico)
+      if (existeMedico) { // Si el retorno de validarNombreMedico es true, es porque el nombre ya existe
+        return res.status(400).json({ error: 'El médico ya existe' })
+      } else {
+        await dbPool.query('INSERT INTO medicos (id_medico, nombremedico, especialidad, estado) VALUES($1, $2, $3, $4)', [id, nombre, especialidad, estado]) // Aca se inserta un nuevo medico en la base de datos si es que no existe ya uno con el mismo nombre
+        return res.status(201).json({ message: 'Médico creado exitosamente' }) // 201 es el codigo de creado exitosamente
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Error al crear el medico' })
+    }
   }
 
   // - - - - - - - - - - - - Obtener un medico por ID - - - - - - - - - - - - - -
@@ -51,20 +68,26 @@ export class medicoController {
   // Falta validar que el ID exista
   static async deleteMedicoById (req, res) {
     const id = req.params.id
-    /*
-    // realmente el validador este, no sirve de nada, pq si el id no existe, el update no afecta ninguna fila y se maneja con el rowCount
-    const existe = await validarMedicoID(id)
-    console.log('existe ', existe)
-    */
     try {
-      const result = await dbPool.query('UPDATE medicos SET estado = $1 WHERE id_medico = $2', ['inactivo', id]) // Aqui se cambia el estado de un medico a inactivo segun el id ingresado
-      console.log(result.rowCount)
-      if (result.rowCount === 0) { // rowCount devuelve la cantidad de filas afectadas por la query, si es 0, es porque no encontro el id; row.length no sirve en este caso porque un update no retorna filas
-        return res.status(404).json({ error: 'Médico no encontrado' })// Siempre y cuando el id que ingrese cuente con el formato UUID, si no existe, entra aqui, si es de formato diferente, se va al catch
+      const existe = await validarMedicoID(id) // Funcion que valida si el ID existe en la base de datos (util/validador_id_db.js)
+      if (existe) { // Si el retorno de ValidarMedicoID es true, es porque el ID existe
+        const estado = await consultarEstadoMedicoID(id) // Funcion que consulta el estado del medico segun su ID (util/validador_id_db.js)
+        // console.log('estado ', estado)
+        if (estado === 'inactivo') {
+          // console.log('El medico esta inactivo')
+          return res.status(400).json({ error: 'El médico ya está inactivo' })
+        } else { // Solo si el medico esta activo, se puede cambiar a inactivo
+          // console.log('EL medico estaba activo')
+          await dbPool.query('UPDATE medicos SET estado = $1 WHERE id_medico = $2', ['inactivo', id]) // Aqui se cambia el estado de un medico a inactivo segun el id ingresado
+          // console.log('result.rowCount ', result.rowCount)
+          return res.status(200).json({ message: 'Estado de médico cambiado a inactivo' }) // Si se pudo cambiar el estado, se retorna este mensaje
+        }
+      } else { // Si el retorno de ValidarMedicoID es false, es porque el ID no existe
+        return res.status(400).json({ error: 'El ID del médico no existe' })
       }
-      res.status(200).json({ message: 'Estado de médico cambiado a inactivo' })
     } catch (error) {
-      res.status(500).json({ error: 'Error al eliminar el médico' })
+      console.log('Error al validar estado: ', error)
+      return res.status(500).json({ error: 'Error al eliminar el médico' })
     }
   }
 

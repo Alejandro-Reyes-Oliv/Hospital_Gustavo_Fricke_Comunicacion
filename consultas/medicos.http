@@ -2,12 +2,20 @@
 GET http://localhost:3000/medicos
 ### Crear medico
 POST http://localhost:3000/medicos
+Content-Type: application/json
+
+{
+  "idMedico" : "dcdd0fad-a94c-4810-8acc-5f108d3b18c2",
+  "nombreMedico": "Bodoque",
+  "especialidad": "Oftalmologia",
+  "estado": "activo" 
+}
 
 ### Obtener medico por ID
 GET http://localhost:3000/medicos/dcdd0fad-a94c-4810-8acc-5f108d3b18c3
 
 ### Eliminar medico por ID
-DELETE http://localhost:3000/medicos/dcdd0fad-a94c-4810-8acc-5f108d3b18c3
+DELETE http://localhost:3000/medicos/dcdd0fad-a94c-4810-8acc-5f108d3b18c2
 
 ### Actualizar medico por ID
 PATCH http://localhost:3000/medicos/1
@@ -17,10 +25,10 @@ PATCH http://localhost:3000/medicos/1
 GET http://localhost:3000/medicos/especialidad/Cardiologia
 
 ### Obtener medicos por nombre  
-GET http://localhost:3000/medicos/nombre/Juan
+GET http://localhost:3000/medicos?nombre=Juan%20Carlos
 
 ### Obtener medicos por estado
-GET http://localhost:3000/medicos/estado/activo
+GET http://localhost:3000/medicos?estado=activo
 
 ### Obtener medicos por estado
-GET http://localhost:3000/medicos/estado/inactivo
+GET http://localhost:3000/medicos?estado=inactivo
