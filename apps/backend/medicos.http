@@ -1,0 +1,15 @@
+### Obtener todos los medicos
+GET http://localhost:3000/api/doctores
+### Crear medico
+POST http://localhost:3000/api/doctores
+Content-Type: application/json
+
+{
+  "idMedico" : "dcdd0fad-a94c-4810-8acc-5f108d3b18c2",
+  "nombreMedico": "Bodoque",
+  "especialidad": "Oftalmologia",
+  "estado": "activo" 
+}
+
+### Obtener medico por ID
+GET http://localhost:3000/api/doctores/1

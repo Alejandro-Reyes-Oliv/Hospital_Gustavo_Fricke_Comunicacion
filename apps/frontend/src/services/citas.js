@@ -30,19 +30,43 @@ const mapLegacyToNew = (r) => {
 // Normaliza cualquier arreglo a nuevo esquema
 const normalizeArray = (arr) => (arr || []).map((r) => (isNewRecord(r) ? r : mapLegacyToNew(r)));
 
-export async function listCitas() {
-  // 1) Intentar leer cache v2
-  const cached = getRaw();
-  if (cached) return normalizeArray(cached);
+export async function listCitas(params = {}) {
+  const baseURL = import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:3000';
 
-  // 2) No hay cache: cargar seed (puede ser el viejo /citas.json)
-  const r = await fetch("/mock/citas.json");
-  const data = await r.json();
+  const query = new URLSearchParams();
+  if (params.search)   query.set('search', params.search);
+  if (params.estado)   query.set('estado', params.estado);
+  if (params.medicoId) query.set('medicoId', params.medicoId);
+  if (params.sort)     query.set('sort', params.sort);
+  if (params.from)     query.set('from', params.from);
+  if (params.to)       query.set('to', params.to);
 
-  const normalized = normalizeArray(data);
-  persist(normalized);
-  return normalized;
+  // Asegura page/pageSize numéricos por defecto
+  query.set('page', String(params.page ?? 1));
+  query.set('pageSize', String(params.pageSize ?? 10));
+
+  const res = await fetch(`${baseURL}/api/citas?${query.toString()}`);
+  if (!res.ok) {
+    // intenta leer mensaje útil
+    let msg = 'Error al listar citas';
+    try { const e = await res.json(); msg = e?.error?.message || msg; } catch {}
+    throw new Error(msg);
+  }
+
+  const raw = await res.json();
+
+  // Normaliza: acepta {data:[...]} o {items:[...]}
+  const items = Array.isArray(raw?.items)
+    ? raw.items
+    : (Array.isArray(raw?.data) ? raw.data : []);
+
+  const total    = Number(raw?.total ?? 0);
+  const page     = Number(raw?.page ?? params.page ?? 1);
+  const pageSize = Number(raw?.pageSize ?? params.pageSize ?? 10);
+
+  return { items, total, page, pageSize };
 }
+
 
 export async function addAppointment({
   // NUEVO esquema

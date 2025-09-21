@@ -1,0 +1,22 @@
+### Obtener todas las citas medicas
+GET http://localhost:3000/api/citas
+
+### Crear cita medica
+POST http://localhost:3000/api/citas
+Content-Type: application/json
+
+{
+    "doctorId": 1,
+    "fecha_hora": "2025-09-23T00:03:00.000Z",
+    "estado": "cancelada",
+    "paciente_nombre": "Vicente",
+    "paciente_rut": null,
+    "paciente_telefono": "955333737",
+    "doctor_nombre_snap": "Juan carlos",
+    "especialidad_snap": "Cardiologo",
+    "creadoEn": "2025-09-21T00:01:45.231Z",
+    "actualizadoEn": "2025-09-21T01:29:47.230Z"
+}
+
+### Obtener cita medica por ID
+GET http://localhost:3000/api/citas/1

@@ -1,0 +1,18 @@
+### Obtener todas las citas
+GET http://localhost:8080/api/appointments
+
+### Agregar una nueva cita
+POST http://localhost:8080/api/appointments
+Content-Type: application/json
+
+{
+    "id": "3",
+    "nombrePaciente": "Carlos Perez 2",
+    "telefono": "5551234567",
+    "fechaCita": "2025-11-12T23:46:00.000Z",
+    "medicoId": "1",
+    "especialidadMedico": "Cardiologo",
+    "estadoCita": "pendiente"
+
+
+}
