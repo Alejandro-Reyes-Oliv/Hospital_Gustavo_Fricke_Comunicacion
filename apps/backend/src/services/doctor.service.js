@@ -25,5 +25,5 @@ export const DoctorService = {
     prisma.doctor.update({ where: { id: Number(id) }, data }),
 
   // si algún día habilitas borrado duro:
-  eliminar: (id) => prisma.doctor.delete({ where: { id: Number(id) } })
+  eliminar: (id) => prisma.doctor.update({ where: { id: Number(id) }, data: { activo: false } }),
 };
