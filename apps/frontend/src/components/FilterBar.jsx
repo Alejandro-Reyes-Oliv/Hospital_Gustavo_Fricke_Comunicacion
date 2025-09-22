@@ -21,9 +21,9 @@ export default function FiltersBar({
         onChange={(e) => onEstadoChange(e.target.value)}
       >
         <option value="todos">Todos los estados</option>
-        <option value="pend">Pendientes</option>
-        <option value="confirm">Confirmadas</option>
-        <option value="cancel">Canceladas</option>
+        <option value="pendiente">Pendientes</option>
+        <option value="confirmada">Confirmadas</option>
+        <option value="cancelada">Canceladas</option>
       </select>
 
       <select

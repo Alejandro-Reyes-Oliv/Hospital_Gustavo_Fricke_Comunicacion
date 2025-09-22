@@ -31,6 +31,7 @@ async function parseJson(resp) {
 }
 
 async function request(method, path, { query, body, headers } = {}) {
+
   const url = buildUrl(path, query);
   const opts = { method, headers: { ...(headers || {}) } };
 
