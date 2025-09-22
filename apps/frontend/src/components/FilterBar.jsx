@@ -3,7 +3,7 @@ export default function FiltersBar({
   fEstado, onEstadoChange,
   fEsp, onEspChange, especialidades,
   selectedCount,
-  onNewClick, onSendBot, onQuickStatus,
+  onNewClick, onSendBot, onQuickStatus, onDeleteSelected,
   showRut, onToggleRut
 }) {
   return (
@@ -67,6 +67,14 @@ export default function FiltersBar({
       >
         Marcar cancelada
       </button>
+      <button
+         onClick={onDeleteSelected}
+         disabled={!selectedCount}
+         className="rounded border px-3 py-2 disabled:opacity-50"
+         title={selectedCount ? "Eliminar citas seleccionadas" : "Selecciona al menos 1"}
+       >
+         Eliminar seleccionadas
+       </button>
     </div>
   );
 }

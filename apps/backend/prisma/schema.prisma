@@ -19,11 +19,17 @@ model Doctor {
   
 }
 
+enum EstadoCita {
+  pendiente
+  confirmada
+  cancelada
+}
+
 model Cita {
   id                 Int       @id @default(autoincrement())
   doctorId           Int
   fecha_hora         DateTime  // timestamp local (sin zona)
-  estado             String    @default("pendiente") // pendiente | confirmada | cancelada
+  estado             EstadoCita @default(pendiente)
 
   paciente_nombre    String
   paciente_rut       String?
