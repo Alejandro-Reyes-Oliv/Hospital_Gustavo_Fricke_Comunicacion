@@ -1,7 +1,7 @@
 import fetch from "node-fetch"; // Si usas Node 18+, ya viene con fetch integrado
 
 const url = "https://graph.facebook.com/v23.0/733696073164766/messages";
-const token = "EAAPcFHLFxk4BPVL32RkcMml6I5c4bS73kVTGg7i3ZCwVDnlH3av7rRBcyZAJ3fJuM8PwqiCcUU8vsZB491X7khW4o1bIicMtwE3CsH5q7OhlMrfNXFEU8bQfKv9zaKZC7FZAcZBnWxzDRC3F1ULtLvVZA0AIgqhWC9yu4rST1otjwdoEQu2Kn92HPXvaZCdwYctdmuOakFo9fM0BaB2RI1J1HXEZCpGKH7GqIbwUoKQZDZD"; // ⚠️ tu token de acceso
+const token = "EAAPcFHLFxk4BPgbS4RKu4Qy5AUSlRDC2kAKDPb3mrcOvZC7Qr8RUTUvjPdHna9ZBxfUTiA0ZADed3ZBjDFAeltxHAZA0WWBO5luwqklQ4lZBV2h7c3uphYQtsrOTqsC27v1ckZBgnKnZC3kZAT3tJx1fohhqsPcsx1IkEbCyuZBhaZBFy5JE97UlY7QWIVI12soUMbleAZDZD"; // ⚠️ tu token de acceso
 
 const payload = {
   messaging_product: "whatsapp",
