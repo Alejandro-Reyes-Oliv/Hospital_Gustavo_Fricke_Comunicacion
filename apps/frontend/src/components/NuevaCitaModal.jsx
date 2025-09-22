@@ -32,9 +32,10 @@ export default function NewAppointmentModal({ open, onClose, onCreate, medicos =
         <div className="text-lg font-semibold">Nueva cita</div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <input name="nombrePaciente" required className="border rounded px-3 py-2" placeholder="Paciente" />
+          <input name="nombrePaciente" className="border rounded px-3 py-2"
+            placeholder="Nombre del paciente" required minLength={2} />
           <input name="rut" className="border rounded px-3 py-2" placeholder="RUT (opcional)" />
-          <input name="fechaCita" type="datetime-local" required className="border rounded px-3 py-2" />
+          <input name="fechaCita" type="datetime-local" className="border rounded px-3 py-2" placeholder="Fecha" required />
 
           {/* Médico (envía el id). Además mandamos nombre oculto para compatibilidad. */}
           <select

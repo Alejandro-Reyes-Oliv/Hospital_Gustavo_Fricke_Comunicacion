@@ -1,11 +1,18 @@
-export const validate = (schema) => (req, res, next) => {
-  const parsed = schema.safeParse(req.body);
-  if (!parsed.success) {
-    const err = new Error("Validación fallida");
-    err.status = 400;
-    err.details = parsed.error.flatten();
-    return next(err);
+import { ZodError } from "zod";
+
+export const validate = (schema) => (req, _res, next) => {
+  try {
+    if (!schema) return next();
+    const input = ["GET", "DELETE"].includes(req.method) ? req.query : req.body;
+    const parsed = schema.parse(input);
+    req.validated = parsed;
+    next();
+  } catch (e) {
+    if (e instanceof ZodError) {
+      e.status = 400;
+      e.code = "BAD_REQUEST";
+      e.details = e.issues;
+    }
+    next(e);
   }
-  req.validated = parsed.data;
-  next();
 };
