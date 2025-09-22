@@ -11,7 +11,7 @@ import * as local from './citas.js'
  */
 export async function listCitas(params = {}) {
   const baseURL = import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:8080';
-
+  
   const query = new URLSearchParams();
   if (params.search)   query.set('search', params.search);
   if (params.estado)   query.set('estado', params.estado);
@@ -20,6 +20,7 @@ export async function listCitas(params = {}) {
   if (params.from)     query.set('from', params.from);
   if (params.to)       query.set('to', params.to);
 
+  console.log("Estado de nose que: ", params.estado); //_------------------------------------------------------------------------
   // Asegura page/pageSize numéricos por defecto
   query.set('page', String(params.page ?? 1));
   query.set('pageSize', String(params.pageSize ?? 10));
@@ -133,8 +134,8 @@ function normalizeQuery(q = {}) {
 
 function normalizeStatus(s) {
   const v = String(s || '').toLowerCase()
-  if (v.includes('confirm')) return STATUS.CONFIRMADA
-  if (v.includes('cancel')) return STATUS.CANCELADA
+  if (v.includes('confirmada')) return STATUS.CONFIRMADA
+  if (v.includes('cancelada')) return STATUS.CANCELADA
   return STATUS.PENDIENTE
 }
 
