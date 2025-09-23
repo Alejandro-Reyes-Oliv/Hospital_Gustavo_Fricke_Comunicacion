@@ -103,20 +103,23 @@ export async function updateStatus(ids, nextStatus) {
 /**
  * SEND BOT (bulk): backend preferido; fallback local
  */
+//-----------------------------------------------------------------------------------------------------------------
 export async function sendBot(ids = []) {
+  console.log("ids para enviar: ",ids)
   if (!api.baseURL) return local.sendBot(ids)
 
-  const { ok, data, error } = await api.post('/api/appointments:send-bot', {
+  const { ok, data, error } = await api.post('/api/appointments/send-bot', {
     body: { ids },
   })
+  console.log("data: ",data)
   if (!ok) {
-    console.warn('POST /api/appointments:send-bot falló, usando fuente local:', error)
+    console.warn('POST /api/appointments/send-bot falló, usando fuente local:', error)
     return local.sendBot(ids)
   }
   const sent = Array.isArray(data?.sent) ? data.sent : Array.isArray(data?.data) ? data.data : []
   return { ok: true, sent }
 }
-
+//------------------------------------------------------------------------------------------------------------------
 // ----------------------
 
 function normalizeQuery(q = {}) {
