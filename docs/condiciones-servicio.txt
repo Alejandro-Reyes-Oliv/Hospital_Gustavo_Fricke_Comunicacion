@@ -1,0 +1,20 @@
+Términos de Servicio
+
+Última actualización: 03 oct 2025
+
+El presente documento establece los términos de uso del sistema de comunicación automatizada para la confirmación de citas médicas, desarrollado por estudiantes de Ingeniería Informática de la Universidad Federico Santa María sede Viña del Mar.
+
+1. Alcance:
+   - Este sistema es un proyecto académico y no representa un servicio oficial del Hospital Gustavo Fricke.
+   - Su propósito es demostrar competencias técnicas en desarrollo de software.
+
+2. Uso del sistema:
+   - El sistema se limita a enviar y recibir mensajes relacionados con la confirmación de citas médicas.
+   - No debe ser utilizado para otros fines distintos a los definidos en este proyecto.
+
+3. Responsabilidad:
+   - El equipo de desarrollo no se hace responsable del mal uso del sistema ni de decisiones tomadas en base a los mensajes enviados.
+   - Al ser un proyecto académico, no se garantiza su disponibilidad continua ni su uso en entornos de producción.
+
+4. Contacto:
+   - Para consultas relacionadas con estos términos, contactar a: parfetech@gmail.com
