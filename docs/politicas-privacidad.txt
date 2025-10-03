@@ -1,0 +1,21 @@
+Política de Privacidad
+
+Última actualización: 03 oct 2025
+
+Este proyecto universitario desarrollado por el equipo de Ingeniería Informática de la Universidad Federico Santa María sede Viña del Mar tiene como objetivo implementar un sistema de comunicación automatizada para la confirmación de citas médicas en el Hospital Gustavo Fricke.
+
+1. Información recopilada:
+   - El sistema procesa únicamente la información necesaria para la confirmación de citas médicas (nombre, fecha de la cita, estado de confirmación).
+   - No se almacenan contraseñas ni datos sensibles adicionales de los pacientes.
+
+2. Uso de la información:
+   - La información recopilada se utiliza exclusivamente para el envío y recepción de mensajes de confirmación de citas médicas.
+
+3. Protección de la información:
+   - Los datos se manejan de forma confidencial y se limitan al ámbito académico de este proyecto.
+   - No compartimos información con terceros.
+
+4. Contacto:
+   - Para dudas sobre esta política, puede contactarse con el equipo de desarrollo a: parfetech@gmail.com
+
+Este proyecto es de carácter académico y no está destinado a uso comercial.
