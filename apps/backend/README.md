@@ -169,3 +169,11 @@ PATCH /api/recordatorios/:id → estado=enviado|error, enviado_en, intentos, err
 - Validaciones: Zod en endpoints (nombre, doctorId, paciente_telefono, etc.).
 
 
+
+# Enviar curl
+
+curl -X POST http://localhost:3000/api/bot/send \
+  -H "Content-Type: application/json" \
+  -d '{"citaIds":[7,8,9,10]}'    <---- las que sean necesarias
+
+

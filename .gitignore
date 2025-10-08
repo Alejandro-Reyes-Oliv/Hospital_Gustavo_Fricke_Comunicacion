@@ -9,6 +9,7 @@ coverage/
 .env.*.local
 apps/*/.env
 apps/*/.env.*
+.env.local
 
 # OS / Editor
 .DS_Store
