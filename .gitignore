@@ -22,3 +22,5 @@ Thumbs.db
 # Build
 **/build
 **/out
+
+apps/msgbot/.env

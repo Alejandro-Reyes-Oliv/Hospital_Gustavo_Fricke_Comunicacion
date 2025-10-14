@@ -1,7 +1,7 @@
 // src/services/citas.p2.js
 
 import api from '../lib/apiClient.js'
-api.baseURL ||= 'http://localhost:3000';
+api.baseURL ||= 'http://localhost:8000';
 import { mapCitaApiToDTO } from '../lib/dto.js'
 import { STATUS } from '../lib/constants.js'
 import * as local from './citas.js'
@@ -10,7 +10,7 @@ import * as local from './citas.js'
  * LIST: backend si hay baseURL; si no, mock JSON → sync a localStorage; si falla, localStorage puro.
  */
 export async function listCitas(params = {}) {
-  const baseURL = import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:3000';
+  const baseURL = import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:8000';
 
   const query = new URLSearchParams();
   if (params.search)   query.set('search', params.search);

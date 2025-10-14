@@ -1,0 +1,26 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model WhatsAppMessage {
+  id              String   @id @default(cuid())
+  direction       String   // inbound | status
+  messageId       String?  @unique
+  timestamp       DateTime
+  fromWaId        String?
+  toPhoneNumberId String?
+  type            String   // text | interactive | sent | delivered | read | failed | ...
+  textBody        String?
+  raw             Json
+  meta            Json
+  createdAt       DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([direction, type])
+}
