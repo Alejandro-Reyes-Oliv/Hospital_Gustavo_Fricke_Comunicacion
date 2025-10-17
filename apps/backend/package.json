@@ -18,6 +18,8 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:reset": "prisma migrate reset --force",
+    "prisma:seed": "node prisma/seed.js",
+
 
     "// === Datos / Seeds ===": "",
     "db:seed": "prisma db seed",
