@@ -2,39 +2,27 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  // Doctores base
-  const doctores = await prisma.doctor.createMany({
-    data: [
-      { nombre: 'Dr. Berto Dago', especialidad: 'Traumatología' },
-      { nombre: 'Dr. Antonio Páez', especialidad: 'General' }
-    ],
-    skipDuplicates: true
+  // Doctor
+  const doc = await prisma.doctor.create({
+    data: { nombre: 'Dra. Ortiz', especialidad: 'Cardiología' }
   });
 
-  // Una cita de ejemplo: ajusta los nombres de campos a tu modelo real
-  const [andrea] = await prisma.doctor.findMany({ take: 1, where: { nombre: 'Dr. Berto Dago' } });
-  if (andrea) {
-    await prisma.cita.upsert({
-      where: { id: 1 },        // si tu modelo usa id autoincrement, puedes usar create directamente
-      update: {},
-      create: {
-        doctorId: andrea.id,
-        paciente_nombre: 'Luffy D. Monkey',
-        paciente_telefono: '+56912345678',
-        fecha_hora: new Date(Date.now() + 1000 * 60 * 60 * 24), // mañana
-        estado: 'PROGRAMADA' // si tu modelo tiene enum/estado
-      }
-    });
-  }
+  // Cita a +60 min
+  const cita = await prisma.cita.create({
+    data: {
+      doctorId: doc.id,
+      fecha_hora: new Date(Date.now() + 60 * 60 * 1000),
+      paciente_nombre: 'Juan Pérez',
+      paciente_rut: '12.345.678-9',
+      paciente_telefono: '+56912345678',
+      doctor_nombre_snap: 'Dra. Ortiz',
+      especialidad_snap: 'Cardiología'
+    }
+  });
 
-  console.log('Seed completado.');
+  console.log({ doctorId: doc.id, citaId: cita.id });
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().finally(async () => {
+  await prisma.$disconnect();
+});

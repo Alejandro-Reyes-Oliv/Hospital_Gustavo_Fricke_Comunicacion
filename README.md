@@ -1,21 +1,42 @@
-### Requisitos
-- Node 20+ / npm
-- Postgres 15/16
-- (PowerShell) Set-ExecutionPolicy RemoteSigned -Scope CurrentUser o usar npm.cmd
+# Hospital Gustavo Fricke – Contactabilidad (Monorepo)
 
-### backend
-- npm run prisma:gen
-- npm run prisma:mig
-- npm run db:seed
-- npm run dev:back
+Actualizado: 2025-10-17
 
-### frontend
-npm run dev:front
+Monorepo para **gestión de citas** y **contactabilidad** por WhatsApp.
 
-### bot-gateway (opcional)
-npm run dev:bot
+## Estructura
 
-### .Env
-- apps/backend/.env → DATABASE_URL=..., PORT=8000
-- apps/frontend/.env → VITE_API_BASE_URL=http://localhost:8000
-- apps/bot-gateway/.env → PORT, META_* (no se commitea)
+```
+apps/
+- frontend
+- backend
+- bot-gateway
+
+```
+
+## Requisitos
+- Node.js 20+
+- PostgreSQL 14+
+- PNPM o NPM
+- Prisma CLI
+
+## Setup
+
+```bash
+pnpm install
+cp .env.example .env  # complete variables
+pnpm prisma generate
+pnpm prisma migrate dev
+pnpm -r dev           # o levante cada app por separado
+```
+
+## Convenciones
+- Contracts/DTOs validados con Zod en backend.
+- Ramas: main, dev, feat/*, fix/*.
+- Commits: formato tradicional (tipo: módulo - resumen).
+- Prefijo de API: **/api** (evite duplicar `/api/api`).
+
+## Troubleshooting
+- CORS: configure ORIGIN en backend.
+- Migraciones: `prisma migrate reset` en desarrollo cuando cambie enums/tablas.
+- 404: valide rutas y prefijos.
