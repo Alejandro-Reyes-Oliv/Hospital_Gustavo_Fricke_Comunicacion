@@ -16,7 +16,6 @@ model Doctor {
   actualizadoEn DateTime @updatedAt
 
   citas Cita[] @relation("DoctorCitas")
-  
 }
 
 enum EstadoCita {
@@ -26,46 +25,144 @@ enum EstadoCita {
 }
 
 model Cita {
-  id                 Int       @id @default(autoincrement())
-  doctorId           Int
-  fecha_hora         DateTime  // timestamp local (sin zona)
-  estado             EstadoCita @default(pendiente)
+  id         Int        @id @default(autoincrement())
+  doctorId   Int
+  fecha_hora DateTime
+  estado     EstadoCita @default(pendiente)
 
-  paciente_nombre    String
-  paciente_rut       String?
-  paciente_telefono  String
+  paciente_nombre   String
+  paciente_rut      String?
+  paciente_telefono String
 
   // snapshots del doctor (texto “congelado” para el mensaje)
   doctor_nombre_snap String?
   especialidad_snap  String?
 
-  doctor             Doctor    @relation("DoctorCitas", fields: [doctorId], references: [id], onDelete: Restrict)
-  recordatorios      CitaRecordatorio[]
+  doctor        Doctor             @relation("DoctorCitas", fields: [doctorId], references: [id], onDelete: Restrict)
+  recordatorios CitaRecordatorio[]
 
-  creadoEn           DateTime  @default(now())
-  actualizadoEn      DateTime  @updatedAt
+  // 🔁 Back-relations nuevas
+  botMessages  BotMessage[]      @relation("Cita_BotMessages")
+  confirmation CitaConfirmation? @relation("Cita_Confirmation")
 
-  @@unique([doctorId, fecha_hora])   // evita doble-booking exacto
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@unique([doctorId, fecha_hora]) // evita doble-booking exacto
   @@index([fecha_hora])
 }
 
 model CitaRecordatorio {
   id              Int       @id @default(autoincrement())
   citaId          Int
-  tipo            String    // 6m | 1m | 1w | 1d | manual
-  programado_para DateTime  // timestamp local (sin zona)
+  tipo            String // 6m | 1m | 1w | 1d | manual
+  programado_para DateTime // timestamp local (sin zona)
   estado          String    @default("pendiente") // pendiente | enviado | error
   enviado_en      DateTime?
   canal           String?
   intentos        Int       @default(0)
   error_ultimo    String?
 
-  cita            Cita      @relation(fields: [citaId], references: [id], onDelete: Cascade)
+  cita Cita @relation(fields: [citaId], references: [id], onDelete: Cascade)
 
-  creadoEn        DateTime  @default(now())
-  actualizadoEn   DateTime  @updatedAt
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
 
   @@index([estado, programado_para])
   @@index([citaId])
 }
 
+model WhatsAppMessage {
+  id              String   @id @default(cuid())
+  direction       String // inbound | status
+  messageId       String?  @unique
+  timestamp       DateTime
+  fromWaId        String?
+  toPhoneNumberId String?
+  type            String // text | interactive_button | delivered | ...
+  textBody        String?
+  raw             Json
+  meta            Json
+  createdAt       DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([direction, type])
+}
+
+// =========================
+// Nuevos enums/tablas Bot*
+// =========================
+
+enum BotDirection {
+  OUTBOUND
+  INBOUND
+}
+
+enum BotMessageStatus {
+  PENDING // enviado, esperando respuesta del usuario/proveedor
+  DELIVERED // (opcional) si el proveedor lo entrega
+  REPLIED // tenemos respuesta del usuario
+  FAILED // error al enviar o procesar
+}
+
+enum CitaConfirmState {
+  PENDING
+  CONFIRMED
+  REJECTED
+  UNKNOWN
+}
+
+model BotMessage {
+  id String @id @default(cuid())
+
+  // 🔗 FK a Cita como Int (coincide con Cita.id)
+  citaId Int?
+  cita   Cita? @relation("Cita_BotMessages", fields: [citaId], references: [id])
+
+  direction         BotDirection
+  provider          String // "whatsapp", "telegram", etc.
+  providerMessageId String?      @unique // ID del mensaje en el proveedor
+  correlationId     String?      @unique // UUID para correlación
+  toPhone           String?
+  fromPhone         String?
+
+  // Contenido “crudo” y normalizado
+  text    String?
+  payload Json? // objeto normalizado (botón, list reply, etc.)
+  raw     Json? // payload original del proveedor (debug)
+
+  status BotMessageStatus @default(PENDING)
+
+  // Para respuestas
+  replyText    String?
+  replyPayload Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([citaId])
+  @@index([toPhone])
+  @@index([fromPhone])
+  @@index([provider, providerMessageId])
+  @@index([provider, correlationId])
+}
+
+model CitaConfirmation {
+  id String @id @default(cuid())
+
+  // 🔗 FK a Cita como Int (coincide con Cita.id)
+  citaId Int  @unique
+  cita   Cita @relation("Cita_Confirmation", fields: [citaId], references: [id])
+
+  state             CitaConfirmState @default(PENDING) // CONFIRMED/REJECTED/UNKNOWN
+  confirmationMsgId String? // BotMessage.id (OUTBOUND) que inició
+  lastReplyMsgId    String? // BotMessage.id (INBOUND) más reciente
+  lastReplyText     String?
+  expiresAt         DateTime? // (opcional) ventana de validez
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([confirmationMsgId])
+  @@index([lastReplyMsgId])
+}

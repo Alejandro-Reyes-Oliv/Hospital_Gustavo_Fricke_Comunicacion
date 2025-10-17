@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "WhatsAppMessage" (
+CREATE TABLE "public"."WhatsAppMessage" (
     "id" TEXT NOT NULL,
     "direction" TEXT NOT NULL,
     "messageId" TEXT,
@@ -16,10 +16,10 @@ CREATE TABLE "WhatsAppMessage" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "WhatsAppMessage_messageId_key" ON "WhatsAppMessage"("messageId");
+CREATE UNIQUE INDEX "WhatsAppMessage_messageId_key" ON "public"."WhatsAppMessage"("messageId");
 
 -- CreateIndex
-CREATE INDEX "WhatsAppMessage_timestamp_idx" ON "WhatsAppMessage"("timestamp");
+CREATE INDEX "WhatsAppMessage_timestamp_idx" ON "public"."WhatsAppMessage"("timestamp");
 
 -- CreateIndex
-CREATE INDEX "WhatsAppMessage_direction_type_idx" ON "WhatsAppMessage"("direction", "type");
+CREATE INDEX "WhatsAppMessage_direction_type_idx" ON "public"."WhatsAppMessage"("direction", "type");
