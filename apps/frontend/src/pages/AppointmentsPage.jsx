@@ -202,7 +202,33 @@ export default function AppointmentsPage() {
         showRut={showRut}
       />
 
-      <NewAppointmentModal
+      
+
+      {/* Barra de acciones inferior */}
+      <div className="mt-4 flex flex-wrap justify-end gap-2">
+        <button
+          onClick={() => onQuickStatus("confirmada")}
+          disabled={!selApi.values.length}
+          className="h-10 shrink-0 whitespace-nowrap rounded-full px-4 text-sm text-white bg-[#2DCD39] disabled:opacity-50 font-medium"
+        >
+          Confirmar
+        </button>
+        <button
+          onClick={() => onQuickStatus("cancelada")}
+          disabled={!selApi.values.length}
+          className="h-10 shrink-0 whitespace-nowrap rounded-full px-4 text-sm text-white bg-[#FD0327] disabled:opacity-50 font-medium"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={onDeleteSelected}
+          disabled={!selApi.values.length}
+          className="h-10 shrink-0 whitespace-nowrap rounded-full px-4 text-sm border border-[#FD0327] text-[#FD0327] hover:bg-[#FD0327]/10 disabled:opacity-50 font-medium"
+        >
+          Eliminar seleccionadas
+        </button>
+      </div>
+<NewAppointmentModal
         medicos={medicos}
         open={showNew}
         onClose={() => setShowNew(false)}
