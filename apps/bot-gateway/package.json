@@ -7,7 +7,7 @@
     "dev": "nodemon --watch src --ext js,json --signal SIGTERM src/server.js",
     "start": "node src/server.js",
     "// === Webhook público (opcional) ===": "",
-    "dev:public": "localtunnel --port 8082 --subdomain hgf-bot"
+    "dev:public": "lt --port 8082 --subdomain hgf-bot"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
