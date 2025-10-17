@@ -70,8 +70,8 @@ export function mapCitaApiToDTO(x = {}) {
     nombreMedico: String(x.nombreMedico ?? x.medico ?? ''),
     especialidadMedico: String(x.especialidadMedico ?? x.especialidad ?? ''),
     estadoCita:
-      estado.includes('confirm') ? STATUS.CONFIRMADA :
-      estado.includes('cancel')  ? STATUS.CANCELADA :
+      estado.includes('confirmada') ? STATUS.CONFIRMADA :
+      estado.includes('cancelada')  ? STATUS.CANCELADA :
                                    STATUS.PENDIENTE,
     createdAt: x.createdAt ?? x.created_at ?? undefined,
     updatedAt: x.updatedAt ?? x.updated_at ?? undefined,

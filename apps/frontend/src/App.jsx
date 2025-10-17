@@ -11,6 +11,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [loggingIn, setLoggingIn] = useState(false);
   const [tab, setTab] = useState("citas");
+  const admin = isAdmin(user);
 
   useEffect(() => {
     const u = getCurrentUser();
@@ -49,8 +50,8 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="flex items-center justify-between border-b px-4 py-3">
+    <div className={`min-h-screen grid ${admin ? "[grid-template-columns:220px_1fr]" : "[grid-template-columns:1fr]"} [grid-template-rows:64px_1fr] bg-[#F0F1FF]` }>
+      <div className="col-span-2 flex items-center justify-between h-16 border-b px-4 bg-white">
         <div className="font-semibold">Panel del Sistema</div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-600">
@@ -65,17 +66,17 @@ export default function App() {
         </div>
       </div>
 
-      <div className="border-b px-4">
+      <div className="row-start-2 col-start-1 bg-white border-r p-3 hidden md:block">
         {isAdmin(user) && (
-          <div className="flex gap-2">
-            <button onClick={() => setTab("citas")}   className={tab==="citas"   ? "font-semibold" : ""}>Citas</button>
-            <button onClick={() => setTab("usuarios")} className={tab==="usuarios" ? "font-semibold" : ""}>Usuarios</button>
-            <button onClick={() => setTab("medicos")} className={tab==="medicos" ? "font-semibold" : ""}>Médicos</button>
+          <div className="flex flex-col gap-1">
+            <button onClick={() => setTab("citas")}   className={(tab==="citas"   ? "bg-[#0C4581] text-white shadow-sm font-semibold " : " ") + "text-left py-3 px-4 rounded-xl"}>Citas</button>
+            <button onClick={() => setTab("usuarios")} className={(tab==="usuarios" ? "bg-[#0C4581] text-white shadow-sm font-semibold " : " ") + "text-left py-3 px-4 rounded-xl"}>Usuarios</button>
+            <button onClick={() => setTab("medicos")} className={(tab==="medicos" ? "bg-[#0C4581] text-white shadow-sm font-semibold " : " ") + "text-left py-3 px-4 rounded-xl"}>Médicos</button>
           </div>
         )}
       </div>
 
-      <div className="p-4">
+      <div className={`p-6 ${admin ? "row-start-2 col-start-2" : "row-start-2 col-start-1"} max-w-[1200px] mx-auto` }>
         {tab === "citas" && <AppointmentsPage />}
         {tab === "usuarios" && (
           isAdmin(user) ? <UsersPage /> : null
