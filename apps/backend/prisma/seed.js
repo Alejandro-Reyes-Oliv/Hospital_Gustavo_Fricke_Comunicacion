@@ -14,7 +14,7 @@ async function main() {
       fecha_hora: new Date(Date.now() + 60 * 60 * 1000),
       paciente_nombre: 'Juan Pérez',
       paciente_rut: '12.345.678-9',
-      paciente_telefono: '+56912345678',
+      paciente_telefono: '56979685391',
       doctor_nombre_snap: 'Dra. Ortiz',
       especialidad_snap: 'Cardiología'
     }
