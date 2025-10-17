@@ -5,7 +5,7 @@ const token = "EAAPcFHLFxk4BPgbS4RKu4Qy5AUSlRDC2kAKDPb3mrcOvZC7Qr8RUTUvjPdHna9ZB
 
 const payload = {
   messaging_product: "whatsapp",
-  to: "56966484260", // número destino
+  to: "56985776097", //número destino  #Numero vicho: 56966484260  ,Numero Ale: 56955333737
   type: "template",
   template: {
     name: "confirmacion_cita_medica", // nombre EXACTO como aparece en Business Manager
@@ -14,10 +14,10 @@ const payload = {
       {
         type: "body",
         parameters: [
-          { type: "text", text: "Juan Pérez" },
-          { type: "text", text: "Dra. María López" },
-          { type: "text", text: "20/08/2025" },
-          { type: "text", text: "11:00" },
+          { type: "text", text: "Vicente Paez" },
+          { type: "text", text: "Alejandro Reyes" },
+          { type: "text", text: "04/10/2025" },
+          { type: "text", text: "17:00" },
           { type: "text", text: "Piso 3, Box 5" }
         ]
       }

@@ -1,0 +1,10 @@
+:root{
+--brand:#0B4A9E; /* azul marca */
+--bg:#F5F7FF; /* fondo app */
+--card:#FFFFFF; /* cards */
+--ink:#0F172A; /* texto */
+--muted:#64748B; /* texto secundario */
+--ok:#22C55E; /* confirm */
+--danger:#EF4444;/* cancelar */
+}
+body{ background:var(--bg); color:var(--ink); }

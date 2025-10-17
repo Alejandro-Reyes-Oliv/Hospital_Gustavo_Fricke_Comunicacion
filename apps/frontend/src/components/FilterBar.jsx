@@ -1,80 +1,80 @@
+import { useEffect, useState } from 'react';
+
 export default function FiltersBar({
   q, onQChange,
   fEstado, onEstadoChange,
-  fEsp, onEspChange, especialidades,
-  selectedCount,
-  onNewClick, onSendBot, onQuickStatus, onDeleteSelected,
+  fEsp, onEspChange, especialidades = [],
+  selectedCount = 0,
+  onNewClick, onSendBot,
   showRut, onToggleRut
 }) {
+  const [qLocal, setQLocal] = useState(q ?? "");
+
+  // sin perder foco al tipear: disparo cambios hacia el padre con debounce
+  useEffect(() => {
+    const t = setTimeout(() => onQChange?.(qLocal), 180);
+    return () => clearTimeout(t);
+  }, [qLocal]);
+
   return (
-    <div className="flex flex-col gap-2 md:flex-row md:items-center">
+    <div className="flex flex-wrap items-center gap-3">
+      {/* Buscar */}
       <input
-        className="w-full md:w-80 rounded-lg border px-3 py-2"
+        className="h-10 w-full md:w-[420px] rounded-full border border-slate-200 shadow-sm px-4 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0C4581]/30"
         placeholder="Buscar por paciente, RUT o teléfono…"
-        value={q}
-        onChange={(e) => onQChange(e.target.value)}
+        autoFocus
+        value={qLocal}
+        onChange={(e) => setQLocal(e.target.value)}
       />
 
+      {/* Estado */}
       <select
-        className="rounded-lg border px-3 py-2"
-        value={fEstado}
-        onChange={(e) => onEstadoChange(e.target.value)}
+        className="h-10 rounded-lg border border-slate-200 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0C4581]/30"
+        value={fEstado ?? "todos"}
+        onChange={(e) => onEstadoChange?.(e.target.value)}
       >
         <option value="todos">Todos los estados</option>
-        <option value="pendiente">Pendientes</option>
-        <option value="confirmada">Confirmadas</option>
-        <option value="cancelada">Canceladas</option>
+        <option value="confirmada">Confirmada</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="cancelada">Cancelada</option>
       </select>
 
+      {/* Especialidades */}
       <select
-        className="rounded-lg border px-3 py-2"
-        value={fEsp}
-        onChange={(e) => onEspChange(e.target.value)}
+        className="h-10 rounded-lg border border-slate-200 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0C4581]/30"
+        value={fEsp ?? "todas"}
+        onChange={(e) => onEspChange?.(e.target.value)}
       >
         <option value="todas">Todas las especialidades</option>
-        {especialidades.map((e) => (
-          <option key={e} value={e}>{e}</option>
+        {Array.isArray(especialidades) && especialidades.map((esp) => (
+          <option key={String(esp)} value={String(esp)}>{String(esp)}</option>
         ))}
       </select>
 
-      <label className="flex items-center gap-2 text-sm ml-0 md:ml-2">
-        <input type="checkbox" checked={showRut} onChange={onToggleRut} />
+      {/* Mostrar RUT */}
+      <label className="flex items-center gap-2 text-sm text-slate-700">
+        <input type="checkbox" className="h-4 w-4" checked={!!showRut} onChange={onToggleRut} />
         Mostrar RUT
       </label>
 
-      <div className="flex-1" />
-      <button onClick={onNewClick} className="rounded bg-blue-600 text-white px-3 py-2 hover:bg-blue-700">
-        + Nuevo
-      </button>
-      <button
-        onClick={onSendBot}
-        disabled={!selectedCount}
-        className="rounded bg-indigo-600 text-white px-3 py-2 disabled:opacity-50 hover:bg-indigo-700"
-      >
-        Enviar bot ({selectedCount || 0})
-      </button>
-      <button
-        onClick={() => onQuickStatus("confirmada")}
-        disabled={!selectedCount}
-        className="rounded bg-green-600 text-white px-3 py-2 disabled:opacity-50 hover:bg-green-700"
-      >
-        Marcar confirmada
-      </button>
-      <button
-        onClick={() => onQuickStatus("cancelada")}
-        disabled={!selectedCount}
-        className="rounded bg-red-600 text-white px-3 py-2 disabled:opacity-50 hover:bg-red-700"
-      >
-        Marcar cancelada
-      </button>
-      <button
-         onClick={onDeleteSelected}
-         disabled={!selectedCount}
-         className="rounded border px-3 py-2 disabled:opacity-50"
-         title={selectedCount ? "Eliminar citas seleccionadas" : "Selecciona al menos 1"}
-       >
-         Eliminar seleccionadas
-       </button>
+      {/* Acciones (derecha) */}
+      <div className="ml-auto flex items-center gap-2">
+        <button
+          onClick={onNewClick}
+          className="h-10 shrink-0 whitespace-nowrap rounded-full px-4 text-sm text-white bg-[#0C4581] hover:opacity-90 font-medium"
+        >
+          + Nuevo
+        </button>
+
+        <button
+          onClick={onSendBot}
+          disabled={!selectedCount}
+          className="h-10 shrink-0 whitespace-nowrap rounded-full px-4 text-sm text-white bg-[#25D366] disabled:opacity-50 font-medium"
+          title={selectedCount ? "Enviar bot a seleccionados" : "Selecciona al menos 1"}
+        >
+          Enviar bot ({selectedCount || 0})
+        </button>
+      </div>
     </div>
   );
 }
