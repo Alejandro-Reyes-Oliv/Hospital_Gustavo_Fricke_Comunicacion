@@ -1,21 +1,37 @@
-### Requisitos
-- Node 20+ / npm
-- Postgres 15/16
-- (PowerShell) Set-ExecutionPolicy RemoteSigned -Scope CurrentUser o usar npm.cmd
+# Hospital Gustavo Fricke — Comunicación (WhatsApp E2E)
 
-### backend
-- npm run prisma:gen
-- npm run prisma:mig
-- npm run db:seed
-- npm run dev:back
+## Requisitos
+- Node 18+ (con `fetch` global). Probado en Node 22.
+- Postgres en `.env` ya configurado para `apps/backend`.
 
-### frontend
-npm run dev:front
+## Flujo de trabajo (dev)
 
-### bot-gateway (opcional)
-npm run dev:bot
+### 0) Reset DB (opcional)
+```bash
+npm run db:reset
+npm run db:migrate
+npm run studio
+```
+# Levantar servicios
+npm run dev:back
+npm run dev:gateway
+npm run tunnel
 
-### .Env
-- apps/backend/.env → DATABASE_URL=..., PORT=8000
-- apps/frontend/.env → VITE_API_BASE_URL=http://localhost:8000
-- apps/bot-gateway/.env → PORT, META_* (no se commitea)
+npm run verify:webhook
+### Debe imprimir: 123
+
+# Enviar OUTBOUND (a una cita real)
+CITA_ID=1 TO_PHONE=569XXXXXXXX npm run test:outbound
+
+# Responder desde el celu
+
+# Consultas útiles
+# Historial completo
+curl "http://localhost:8000/api/bot/messages?citaId=1"
+
+# Estado de confirmación actual
+curl "http://localhost:8000/api/appointments/1/confirmation"
+
+# Pruebas locales
+npm run test:webhook:text
+CITA_ID=1 npm run test:webhook:button

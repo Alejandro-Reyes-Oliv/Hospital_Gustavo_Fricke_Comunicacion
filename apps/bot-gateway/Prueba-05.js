@@ -1,12 +1,16 @@
-// apps/bot-gateway/Prueba-04.js
-// import fetch from "node-fetch"; // En Node 18+ puedes usar global fetch
+// apps/bot-gateway/Prueba-05.js
+// Node 18+: fetch global disponible
 
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;               // token de app Meta
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;    // id del número de WhatsApp
 const GRAPH_BASE = process.env.WHATSAPP_API_BASE || "https://graph.facebook.com/v23.0";
 
-// Pequeño helper para llamar a Meta
+// Helper para llamar a Meta y retornar el JSON (contiene wamid)
 async function metaRequest(body) {
+  if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
+    throw new Error("Config WhatsApp incompleta. Revisa .env (WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID)");
+  }
+
   const url = `${GRAPH_BASE}/${PHONE_NUMBER_ID}/messages`;
   const res = await fetch(url, {
     method: "POST",
@@ -16,6 +20,7 @@ async function metaRequest(body) {
     },
     body: JSON.stringify(body),
   });
+
   const data = await res.json();
   if (!res.ok) {
     console.error("[MetaError]", res.status, JSON.stringify(data));
@@ -28,6 +33,8 @@ async function metaRequest(body) {
  * Enviar recordatorio de cita:
  * 1) Plantilla con parámetros (texto del recordatorio)
  * 2) Botones interactivos con payload dinámico CONFIRMAR/RECHAZAR:{citaId}
+ *
+ * Retorna: { wamidTemplate, wamidInteractive }
  *
  * @param {Object} args
  * @param {string} args.to              - teléfono E.164 (ej: +56973882698)
@@ -43,11 +50,7 @@ export async function enviarRecordatorio({
   templateName = "confirmacion_cita_medica",
   languageCode = "es",
 }) {
-  if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
-    throw new Error("Config WhatsApp incompleta. Revisa .env (WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID)");
-  }
-
-  // 1) Enviar PLANTILLA (solo texto con placeholders aprobados)
+  // 1) PLANTILLA
   const templateBody = {
     messaging_product: "whatsapp",
     to,
@@ -70,9 +73,10 @@ export async function enviarRecordatorio({
     },
   };
 
-  await metaRequest(templateBody);
+  const respTpl = await metaRequest(templateBody);
+  const wamidTemplate = respTpl?.messages?.[0]?.id || null;
 
-  // 2) Enviar BOTONES interactivos (no-plantilla) con payload dinámico
+  // 2) BOTONES
   const interactiveButtons = {
     messaging_product: "whatsapp",
     to,
@@ -89,5 +93,8 @@ export async function enviarRecordatorio({
     },
   };
 
-  await metaRequest(interactiveButtons);
+  const respInt = await metaRequest(interactiveButtons);
+  const wamidInteractive = respInt?.messages?.[0]?.id || null;
+
+  return { wamidTemplate, wamidInteractive };
 }
