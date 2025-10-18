@@ -1,119 +1,95 @@
+// src/pages/MedicosPage.jsx
 import { useMemo, useState } from "react";
-import { useMedicosList, useCreateDoctor, useDeleteDoctor } from "../hooks/useMedicosQuery";
+import {
+  useMedicosList,
+  useCreateDoctor,
+  useDeleteDoctor,
+} from "../hooks/useMedicosQuery";
+import NewDoctorModal from "../components/NewDoctorModal";
 
 export default function MedicosPage() {
+  // UI state
   const [q, setQ] = useState("");
-  const [form, setForm] = useState({ nombre: "", especialidad: "", email: "", telefono: "" });
+  const [openCreate, setOpenCreate] = useState(false);
 
-  // Hooks de datos
-  const { data, isLoading: loading, error } = useMedicosList();
+  // Data hooks (React Query)
+  const { data, isLoading, error } = useMedicosList();
   const createMut = useCreateDoctor();
   const delMut = useDeleteDoctor();
 
-  // Normaliza la respuesta: {data:[]}, [] o {items:[]}
+  // Normaliza distintas formas de respuesta del backend
   const rows = useMemo(() => {
     const raw = data?.data ?? data ?? [];
-    //const arr = Array.isArray(raw) ? raw : Array.isArray(raw.items) ? raw.items : [];
-    const arr = Array.isArray(raw)
-      ? raw
-      : Array.isArray(raw.items) ? raw.items
-      : Array.isArray(raw.data)  ? raw.data
-      : Array.isArray(raw.rows)  ? raw.rows
-      : [];
+    const list = Array.isArray(raw) ? raw : raw.items ?? [];
+    if (!q) return list;
 
-    // Normaliza campos para que tu tabla no cambie:
-    // - mock usa: { nombre, especialidad, email, telefono, estado }
-    // - backend usa: { nombre, especialidad, telefono, activo:boolean }
-    return arr.map((r) => ({
-      id: String(r.id ?? r.ID ?? Math.random()),
-      nombre: r.nombre ?? r.name ?? "",
-      especialidad: r.especialidad ?? r.specialty ?? "",
-      email: r.email ?? "",
-      telefono: r.telefono ?? r.phone ?? "",
-      estado:
-        r.estado ??
-        (typeof r.activo === "boolean" ? (r.activo ? "activo" : "inactivo") : "activo"),
-    }));
-  }, [data]);
+    const needle = q.toLowerCase();
+    const has = (v) => (v ?? "").toString().toLowerCase().includes(needle);
 
-  const filtered = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    if (!t) return rows;
-    return rows.filter((m) =>
-      [m.nombre, m.especialidad, m.email, m.telefono, m.estado]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(t))
+    return list.filter(
+      (r) =>
+        has(r.nombre) ||
+        has(r.especialidad) ||
+        has(r.email) ||
+        has(r.telefono)
     );
-  }, [q, rows]);
+  }, [data, q]);
 
-  const onSubmitAdd = async (e) => {
-    e.preventDefault();
-    await createMut.mutateAsync(form);
-    setForm({ nombre: "", especialidad: "", email: "", telefono: "" });
+  // Crear médico (actualiza cache altiro desde el hook)
+  const onSaveDoctor = (payload) => {
+    createMut.mutate(payload, {
+      onSuccess: () => setOpenCreate(false),
+    });
+  };
+
+  // Eliminar médico (optimista desde el hook)
+  const onDeleteDoctor = (id) => {
+    delMut.mutate(id);
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-semibold mb-3">Médicos</h1>
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold">Médicos</h2>
 
-      <div className="flex flex-col gap-2 mb-3">
+      {/* Barra superior: búsqueda + botón Agregar */}
+      <div className="mb-1 flex flex-wrap items-center gap-3">
         <input
+          className="h-10 w-full md:w-[520px] rounded-full border border-slate-300 px-4 text-sm bg-white"
+          placeholder="Buscar por nombre, especialidad, email…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Buscar por nombre, especialidad, email…"
-          className="border rounded px-3 py-2 w-full max-w-xl"
         />
-
-        <form onSubmit={onSubmitAdd} className="flex gap-2">
-          <input
-            className="border p-2 rounded"
-            placeholder="Nombre"
-            value={form.nombre}
-            onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
-            required
-          />
-          <input
-            className="border p-2 rounded"
-            placeholder="Especialidad"
-            value={form.especialidad}
-            onChange={(e) => setForm((f) => ({ ...f, especialidad: e.target.value }))}
-          />
-          <input
-            className="border p-2 rounded"
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-          />
-          <input
-            className="border p-2 rounded"
-            placeholder="Teléfono"
-            value={form.telefono}
-            onChange={(e) => setForm((f) => ({ ...f, telefono: e.target.value }))}
-          />
-          <button className="px-3 py-2 bg-blue-600 text-white rounded">Añadir</button>
-        </form>
+        <div className="ml-auto">
+          <button
+            onClick={() => setOpenCreate(true)}
+            className="h-10 rounded-full bg-[#0C4581] px-5 text-sm font-medium text-white"
+          >
+            + Agregar
+          </button>
+        </div>
       </div>
 
-      {loading && <div>Cargando…</div>}
-      {error && <div className="text-red-600">{String(error.message || error)}</div>}
-      {!loading && filtered.length === 0 && <div>No hay resultados</div>}
-
-      {!loading && filtered.length > 0 && (
-        <div className="overflow-auto">
-          <table className="min-w-full text-sm">
+      {/* Tabla */}
+      {error ? (
+        <div className="text-red-600">Error cargando datos</div>
+      ) : isLoading ? (
+        <div className="text-slate-600">Cargando…</div>
+      ) : (
+        <div className="overflow-x-auto border rounded-2xl shadow bg-white p-4">
+          <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
             <thead>
-              <tr className="text-left border-b">
-                <th className="py-2 pr-4">Nombre</th>
-                <th className="py-2 pr-4">Especialidad</th>
-                <th className="py-2 pr-4">Email</th>
-                <th className="py-2 pr-4">Teléfono</th>
-                <th className="py-2 pr-4">Estado</th>
-                <th className="py-2 pr-4">Acciones</th>
+              <tr className="border-b">
+                <th className="p-2 text-left">Nombre</th>
+                <th className="p-2 text-left">Especialidad</th>
+                <th className="p-2 text-left">Email</th>
+                <th className="p-2 text-left">Teléfono</th>
+                <th className="p-2 text-left">Estado</th>
+                <th className="p-2 text-left">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((r) => (
-                <tr key={r.id} className="border-b">
+              {rows.map((r) => (
+                <tr key={r.id} className="border-b last:border-0">
                   <td className="py-2 pr-4">{r.nombre}</td>
                   <td className="py-2 pr-4">{r.especialidad}</td>
                   <td className="py-2 pr-4">{r.email}</td>
@@ -124,23 +100,40 @@ export default function MedicosPage() {
                         r.estado === "activo" ? "bg-green-100" : "bg-gray-200"
                       }`}
                     >
-                      {r.estado}
+                      {r.estado ?? "activo"}
                     </span>
                   </td>
                   <td className="p-2">
-                    <button
-                      onClick={() => delMut.mutate(r.id)}
-                      className="px-2 py-1 border rounded hover:bg-red-50"
-                    >
-                      Eliminar
-                    </button>
+                  <button
+                    onClick={() => delMut.mutate(r)}   // <-- antes: mutate(r.id)
+                    disabled={delMut.isPending}
+                    className="px-3 py-1 rounded-full text-white bg-[#FD0327] hover:opacity-90 disabled:opacity-50"
+                  >
+                    Eliminar
+                  </button>
+
                   </td>
                 </tr>
               ))}
+
+              {rows.length === 0 && (
+                <tr>
+                  <td className="p-4 text-sm text-slate-500" colSpan={6}>
+                    No hay médicos que coincidan con la búsqueda.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       )}
+
+      {/* Modal de creación */}
+      <NewDoctorModal
+        open={openCreate}
+        onClose={() => setOpenCreate(false)}
+        onSave={onSaveDoctor}
+      />
     </div>
   );
 }
