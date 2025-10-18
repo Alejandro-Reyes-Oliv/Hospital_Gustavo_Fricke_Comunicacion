@@ -11,8 +11,8 @@ export default function AppointmentsTable({
   showRut
 }) {
   return (
-    <div className="overflow-x-auto rounded-lg shadow bg-white">
-      <table className="w-full border-collapse">
+    <div className="overflow-x-auto rounded-2xl border shadow bg-white">
+      <table className="w-full border-separate" style={{borderSpacing:0}}>
         <thead>
           <tr className="bg-gray-100 text-left">
             <th className="p-3">

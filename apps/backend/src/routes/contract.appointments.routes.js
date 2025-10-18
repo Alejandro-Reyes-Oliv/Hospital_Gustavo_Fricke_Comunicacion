@@ -18,3 +18,4 @@ router.post("/", validate(CitaCreateDTO), C.create);
 router.patch("/:id", validate(CitaUpdateDTO), C.update);
 router.patch("/", validate(BulkStatusDTO), C.bulkStatus);
 router.delete("/:id", C.remove);
+router.post("/send-bot", C.sendBot);
