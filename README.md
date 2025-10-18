@@ -1,42 +1,37 @@
-# Hospital Gustavo Fricke – Contactabilidad (Monorepo)
-
-Actualizado: 2025-10-17
-
-Monorepo para **gestión de citas** y **contactabilidad** por WhatsApp.
-
-## Estructura
-
-```
-apps/
-- frontend
-- backend
-- bot-gateway
-
-```
+# Hospital Gustavo Fricke — Comunicación (WhatsApp E2E)
 
 ## Requisitos
-- Node.js 20+
-- PostgreSQL 14+
-- PNPM o NPM
-- Prisma CLI
+- Node 18+ (con `fetch` global). Probado en Node 22.
+- Postgres en `.env` ya configurado para `apps/backend`.
 
-## Setup
+## Flujo de trabajo (dev)
 
+### 0) Reset DB (opcional)
 ```bash
-pnpm install
-cp .env.example .env  # complete variables
-pnpm prisma generate
-pnpm prisma migrate dev
-pnpm -r dev           # o levante cada app por separado
+npm run db:reset
+npm run db:migrate
+npm run studio
 ```
+# Levantar servicios
+npm run dev:back
+npm run dev:gateway
+npm run tunnel
 
-## Convenciones
-- Contracts/DTOs validados con Zod en backend.
-- Ramas: main, dev, feat/*, fix/*.
-- Commits: formato tradicional (tipo: módulo - resumen).
-- Prefijo de API: **/api** (evite duplicar `/api/api`).
+npm run verify:webhook
+### Debe imprimir: 123
 
-## Troubleshooting
-- CORS: configure ORIGIN en backend.
-- Migraciones: `prisma migrate reset` en desarrollo cuando cambie enums/tablas.
-- 404: valide rutas y prefijos.
+# Enviar OUTBOUND (a una cita real)
+CITA_ID=1 TO_PHONE=569XXXXXXXX npm run test:outbound
+
+# Responder desde el celu
+
+# Consultas útiles
+# Historial completo
+curl "http://localhost:8000/api/bot/messages?citaId=1"
+
+# Estado de confirmación actual
+curl "http://localhost:8000/api/appointments/1/confirmation"
+
+# Pruebas locales
+npm run test:webhook:text
+CITA_ID=1 npm run test:webhook:button

@@ -19,8 +19,10 @@
     "prisma:studio": "prisma studio",
     "prisma:reset": "prisma migrate reset --force",
     "prisma:seed": "node prisma/seed.js",
-
-
+    "db:gen": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset --force",
+    "studio": "prisma studio",
     "// === Datos / Seeds ===": "",
     "db:seed": "prisma db seed",
     "import:staging": "node src/db/import_excel_to_staging.js",

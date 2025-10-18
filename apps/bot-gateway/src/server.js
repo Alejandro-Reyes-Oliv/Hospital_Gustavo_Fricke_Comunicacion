@@ -1,104 +1,59 @@
-import express from 'express';
+// apps/bot-gateway/src/server.js
+import express from "express";
 
+//Config
 const app = express();
-app.use(express.json({
-  verify: (req, res, buf) => { req.rawBody = buf; }
-}));
+const PORT = process.env.PORT || 8082;
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
+const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || "frikitona";
 
-// Verificación GET del webhook (Meta)
-app.get('/webhooks/whatsapp', (req, res) => {
-  const token = process.env.VERIFY_TOKEN ?? 'dev-verify-token';
-  const mode = req.query['hub.mode'];
-  const challenge = req.query['hub.challenge'];
-  const verify_token = req.query['hub.verify_token'];
+app.use(express.json({ limit: "1mb" }));
 
-  if (mode === 'subscribe' && verify_token === token) {
+// Health
+app.get("/", (_req, res) => res.status(200).send("OK - bot-gateway up"));
+
+//Verificación de Meta (GET)
+app.get("/webhooks/whatsapp", (req, res) => {
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode === "subscribe" && token === VERIFY_TOKEN) {
+    console.log("[gateway] webhook verified");
     return res.status(200).send(challenge);
   }
+  console.warn("[gateway] verify failed");
   return res.sendStatus(403);
 });
 
-// Recepción de mensajes
-app.post('/webhooks/whatsapp', async (req, res) => {
+// apps/bot-gateway/src/server.js  (solo este handler)
+app.post("/webhooks/whatsapp", async (req, res) => {
   try {
-    const normalized = normalizeWhatsApp(req.body);
-
-    const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:8000';
-    await fetch(`${backendUrl}/api/bot/events`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(normalized)
+    const backendResp = await fetch(`${BACKEND_URL}/api/bot/events`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body),
     });
 
-    res.json({ ok: true });
-  } catch (err) {
-    console.error('gateway error:', err);
-    res.status(500).json({ ok: false });
+    const text = await backendResp.text().catch(() => "");
+    // log claro en consola
+    console.log("[gateway→backend]", backendResp.status, text);
+
+    // WhatsApp espera 200 SIEMPRE, pero devolvemos detalles para debug
+    return res.status(200).json({
+      ok: backendResp.ok,
+      forwarded: backendResp.ok,
+      status: backendResp.status,
+      backendBody: text,
+    });
+  } catch (e) {
+    console.error("[gateway] POST /webhooks/whatsapp error:", e?.message || e);
+    return res.status(200).json({ ok: true, forwarded: false, err: e?.message || "exception" });
   }
 });
 
-// Normalizador para Cloud API (button/text)
-function normalizeWhatsApp(payload) {
-  let fromPhone = null;
-  let text = null;
-  let interactivePayload = null;
-  let providerMessageId = null;
-  let replyToMessageId = null;
 
-  try {
-    const entry = payload?.entry?.[0];
-    const changes = entry?.changes?.[0];
-    const value = changes?.value;
-    const msg = value?.messages?.[0];
-
-    fromPhone = msg?.from ?? null;
-    providerMessageId = msg?.id ?? null;
-
-    if (msg?.type === 'text') {
-      text = msg?.text?.body ?? null;
-      replyToMessageId = msg?.context?.id ?? null;
-    }
-
-    if (msg?.type === 'interactive') {
-      const btn = msg?.interactive?.button_reply;
-      const list = msg?.interactive?.list_reply;
-
-      // En Cloud API el botón entrega { id, title } (no payload).
-      const rawId = btn?.id || list?.id || null;
-
-      if (rawId) {
-        try {
-          const parsed = JSON.parse(rawId); // nosotros guardamos JSON en id
-          interactivePayload = {
-            type: parsed.type ?? 'OTHER',
-            citaId: parsed.citaId,
-            correlationId: parsed.correlationId,
-            raw: parsed
-          };
-        } catch {
-          // Si no era JSON, guardamos igualmente algo
-          interactivePayload = { type: 'OTHER', raw: rawId };
-        }
-      }
-
-      replyToMessageId = msg?.context?.id ?? null;
-    }
-  } catch {
-    // deja campos en null
-  }
-
-  return {
-    provider: 'whatsapp',
-    fromPhone,
-    text,
-    interactivePayload,
-    providerMessageId,
-    replyToMessageId,
-    raw: payload
-  };
-}
-
-const port = process.env.PORT ?? 8082;
-app.listen(port, () => {
-  console.log(`gateway on http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`bot-gateway listening on http://localhost:${PORT}`);
+  console.log(`Forwarding to BACKEND_URL=${BACKEND_URL}`);
 });
