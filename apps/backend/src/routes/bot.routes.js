@@ -1,18 +1,15 @@
-import { Router } from "express";
-import { sendRemindersForCitas } from "../services/bot.service.js";
+// apps/backend/src/routes/bot.routes.js
+import { Router } from 'express';
+import * as BotController from '../controllers/bot.controller.js';
 
 const router = Router();
 
-router.post("/bot/send", async (req, res) => {
-  try {
-    const { citaIds } = req.body;
-    if (!Array.isArray(citaIds) || !citaIds.length) return res.status(400).json({ ok:false, error:"citaIds vacío" });
-    const report = await sendRemindersForCitas(citaIds);
-    res.json({ ok: true, report });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ ok:false, error:"internal_error" });
-  }
-});
+// Quedará /api/bot/outbound, /api/bot/events, etc.
+router.post('/bot/outbound', BotController.sendConfirmation);
+router.post('/bot/events', BotController.ingestEvent);
+
+// Observabilidad
+router.get('/bot/messages', BotController.listMessagesByCita);
+router.get('/appointments/:id/confirmation', BotController.getConfirmationState);
 
 export default router;
