@@ -63,6 +63,11 @@ export async function sendConfirmation({ citaId, toPhone }) {
     citaId: c.id,
     params,
   });
+// Opcional: cerrar OUTBOUND previos "pendientes" de esta cita
+await prisma.botMessage.updateMany({
+  where: { citaId: c.id, direction: "OUTBOUND", status: "PENDING" },
+  data: { status: "DELIVERED" } // o "FAILED" o crea un enum "SUPERSEDED" si prefieres
+});
 
   // Registrar OUTBOUND
   const out = await prisma.botMessage.create({
@@ -165,10 +170,17 @@ export async function processInboundEvent(body) {
 /**
  * Ingesta un evento YA normalizado (o normalizado por la rama RAW)
  */
+// Reemplaza toda la función por esta
 async function ingestNormalizedEvent(evt) {
   const { fromPhone, text, interactivePayload, providerMessageId, replyToMessageId, raw } = evt;
 
-  // Buscar si el reply hace referencia a un OUTBOUND nuestro por context.id
+  if (!providerMessageId) {
+    // Si por algún motivo Meta no envía id, evita romper la unicidad: genera uno temporal
+    // (en la práctica Meta SIEMPRE envía id)
+    console.warn("[ingest] missing providerMessageId; generating temp id");
+  }
+
+  // 1) Buscar si el reply referencia un OUTBOUND nuestro (context.id)
   let replyTo = null;
   if (replyToMessageId) {
     replyTo = await prisma.botMessage.findFirst({
@@ -177,7 +189,7 @@ async function ingestNormalizedEvent(evt) {
     });
   }
 
-  // Parsear payload de botón "ACCION:citaId"
+  // 2) Parsear payload de botón "ACCION:citaId"
   let action = null;
   let citaIdFromPayload = null;
   let replyTitle = null;
@@ -193,25 +205,64 @@ async function ingestNormalizedEvent(evt) {
     }
   }
 
-  // Crear INBOUND
+  const targetCitaId = replyTo?.citaId ?? citaIdFromPayload ?? null;
+  const replyText = text ?? replyTitle ?? null;
+
+  // 3) Intentar UPDATE si ya existe ese providerMessageId (idempotencia)
+  if (providerMessageId) {
+    const existing = await prisma.botMessage.findUnique({
+      where: { providerMessageId },
+      select: { id: true },
+    });
+
+    if (existing) {
+      // Ya lo tenemos: actualizamos campos que puedan haber llegado ahora
+      await prisma.botMessage.update({
+        where: { providerMessageId },
+        data: {
+          citaId: targetCitaId,
+          fromPhone,
+          text: text ?? undefined,
+          replyText: replyText ?? undefined,
+          replyPayload: interactivePayload ?? undefined,
+          raw: raw ?? undefined,
+          status: "REPLIED",
+        },
+      });
+
+      // Actualiza estado de cita si aplica
+      if (targetCitaId) {
+        let state = "UNKNOWN";
+        if (action === "CONFIRMAR") state = "CONFIRMED";
+        if (action === "RECHAZAR") state = "REJECTED";
+
+        await prisma.citaConfirmation.upsert({
+          where: { citaId: targetCitaId },
+          create: { citaId: targetCitaId, state, lastReplyMsgId: existing.id, lastReplyText: replyText },
+          update: { state, lastReplyMsgId: existing.id, lastReplyText: replyText },
+        });
+      }
+      return; // listo
+    }
+  }
+
+  // 4) Si no existe, creamos el INBOUND
   const inbound = await prisma.botMessage.create({
     data: {
-      citaId: replyTo?.citaId ?? citaIdFromPayload ?? null,
+      citaId: targetCitaId,
       direction: "INBOUND",
       provider: "whatsapp",
-      providerMessageId,
+      providerMessageId: providerMessageId ?? undefined, // respeta unicidad
       fromPhone,
       text: text ?? null,
       replyPayload: interactivePayload ?? null,
-      replyText: text ?? replyTitle ?? null,
-      status: "REPLIED", // por tu enum, ya es respuesta del usuario
+      replyText,
+      status: "REPLIED",
       raw: raw ?? null,
     },
   });
 
-  // Actualizar estado de la cita si logramos identificarla
-  const targetCitaId = replyTo?.citaId ?? citaIdFromPayload;
-
+  // 5) Actualizar estado de la cita si logramos identificarla
   if (targetCitaId) {
     let state = "UNKNOWN";
     if (action === "CONFIRMAR") state = "CONFIRMED";
@@ -224,6 +275,7 @@ async function ingestNormalizedEvent(evt) {
     });
   }
 }
+
 
 /* ===================== Queries ===================== */
 export async function listMessages({ citaId }) {
