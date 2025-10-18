@@ -10,8 +10,8 @@ import * as local from './citas.js'
  * LIST: backend si hay baseURL; si no, mock JSON → sync a localStorage; si falla, localStorage puro.
  */
 export async function listCitas(params = {}) {
-  const baseURL = import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:3000';
-
+  const baseURL = import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:8080';
+  
   const query = new URLSearchParams();
   if (params.search)   query.set('search', params.search);
   if (params.estado)   query.set('estado', params.estado);
@@ -20,6 +20,7 @@ export async function listCitas(params = {}) {
   if (params.from)     query.set('from', params.from);
   if (params.to)       query.set('to', params.to);
 
+  console.log("Estado de nose que: ", params.estado); //_------------------------------------------------------------------------
   // Asegura page/pageSize numéricos por defecto
   query.set('page', String(params.page ?? 1));
   query.set('pageSize', String(params.pageSize ?? 10));
@@ -102,20 +103,23 @@ export async function updateStatus(ids, nextStatus) {
 /**
  * SEND BOT (bulk): backend preferido; fallback local
  */
+//-----------------------------------------------------------------------------------------------------------------
 export async function sendBot(ids = []) {
+  console.log("ids para enviar: ",ids)
   if (!api.baseURL) return local.sendBot(ids)
 
-  const { ok, data, error } = await api.post('/api/appointments:send-bot', {
+  const { ok, data, error } = await api.post('/api/appointments/send-bot', {
     body: { ids },
   })
+  console.log("data: ",data)
   if (!ok) {
-    console.warn('POST /api/appointments:send-bot falló, usando fuente local:', error)
+    console.warn('POST /api/appointments/send-bot falló, usando fuente local:', error)
     return local.sendBot(ids)
   }
   const sent = Array.isArray(data?.sent) ? data.sent : Array.isArray(data?.data) ? data.data : []
   return { ok: true, sent }
 }
-
+//------------------------------------------------------------------------------------------------------------------
 // ----------------------
 
 function normalizeQuery(q = {}) {
@@ -133,8 +137,8 @@ function normalizeQuery(q = {}) {
 
 function normalizeStatus(s) {
   const v = String(s || '').toLowerCase()
-  if (v.includes('confirm')) return STATUS.CONFIRMADA
-  if (v.includes('cancel')) return STATUS.CANCELADA
+  if (v.includes('confirmada')) return STATUS.CONFIRMADA
+  if (v.includes('cancelada')) return STATUS.CANCELADA
   return STATUS.PENDIENTE
 }
 
