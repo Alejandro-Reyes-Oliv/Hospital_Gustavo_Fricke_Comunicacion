@@ -5,7 +5,7 @@ const token = "EAAPcFHLFxk4BPgbS4RKu4Qy5AUSlRDC2kAKDPb3mrcOvZC7Qr8RUTUvjPdHna9ZB
 
 const payload = {
   messaging_product: "whatsapp",
-  to: "56985776097", //número destino  #Numero vicho: 56966484260  ,Numero Ale: 56955333737
+  to: "56955333737", //número destino  #Numero vicho: 56966484260  ,Numero Ale: 56955333737
   type: "template",
   template: {
     name: "confirmacion_cita_medica", // nombre EXACTO como aparece en Business Manager

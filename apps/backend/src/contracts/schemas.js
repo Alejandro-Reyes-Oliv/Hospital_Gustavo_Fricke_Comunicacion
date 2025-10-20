@@ -23,7 +23,7 @@ export const DoctorUpdateDTO = DoctorCreateDTO.partial()
 export const DoctorListQuery = z.object({
   search: z.string().optional(),
   page: z.coerce.number().int().positive().optional().default(1),
-  pageSize: z.coerce.number().int().positive().max(200).optional().default(20),
+  pageSize: z.coerce.number().int().positive().max(10000).optional().default(1000),
   sort: z.string().optional().default("nombre:asc"),
 });
 
@@ -59,7 +59,7 @@ export const CitaListQuery = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
   page: z.coerce.number().int().positive().optional().default(1),
-  pageSize: z.coerce.number().int().positive().max(200).optional().default(20),
+  pageSize: z.coerce.number().int().positive().max(10000).optional().default(1000),
   sort: z.string().optional().default("fechaCita:asc"),
 });
 
