@@ -23,7 +23,7 @@ export async function listCitas(params = {}) {
   console.log("Estado de nose que: ", params.estado); //_------------------------------------------------------------------------
   // Asegura page/pageSize numéricos por defecto
   query.set('page', String(params.page ?? 1));
-  query.set('pageSize', String(params.pageSize ?? 10));
+  query.set('pageSize', String(params.pageSize ?? 1000));
 
   const res = await fetch(`${baseURL}/api/appointments?${query.toString()}`);
   if (!res.ok) {
@@ -42,7 +42,7 @@ export async function listCitas(params = {}) {
 
   const total    = Number(raw?.total ?? 0);
   const page     = Number(raw?.page ?? params.page ?? 1);
-  const pageSize = Number(raw?.pageSize ?? params.pageSize ?? 10);
+  const pageSize = Number(raw?.pageSize ?? params.pageSize ?? 1000);
 
   return { items, total, page, pageSize };
 }

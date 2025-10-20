@@ -14,7 +14,7 @@ const normalizeSort = (sort) => {
 export const AppointmentsContractController = {
   list: async (req, res, next) => {
     try {
-      const { search, estado, medicoId, from, to, page = 1, pageSize = 20, sort = "fechaCita:asc" } = req.query;
+      const { search, estado, medicoId, from, to, page = 1, pageSize = 1000, sort = "fechaCita:asc" } = req.query;
       const where = {
         AND: [
           from ? { fecha_hora: { gte: new Date(from) } } : {},

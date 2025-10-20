@@ -81,8 +81,6 @@ export default function MedicosPage() {
               <tr className="border-b">
                 <th className="p-2 text-left">Nombre</th>
                 <th className="p-2 text-left">Especialidad</th>
-                <th className="p-2 text-left">Email</th>
-                <th className="p-2 text-left">Teléfono</th>
                 <th className="p-2 text-left">Estado</th>
                 <th className="p-2 text-left">Acciones</th>
               </tr>
@@ -92,8 +90,6 @@ export default function MedicosPage() {
                 <tr key={r.id} className="border-b last:border-0">
                   <td className="py-2 pr-4">{r.nombre}</td>
                   <td className="py-2 pr-4">{r.especialidad}</td>
-                  <td className="py-2 pr-4">{r.email}</td>
-                  <td className="py-2 pr-4">{r.telefono}</td>
                   <td className="py-2 pr-4">
                     <span
                       className={`px-2 py-1 rounded text-xs ${

@@ -1,22 +1,32 @@
 import { useEffect, useState } from "react";
 
 export default function NewDoctorModal({ open, onClose, onSave, initial = null }) {
-  const [form, setForm] = useState({
-    nombre: "",
-    especialidad: "",
-    email: "",
-    telefono: "",
-  });
+  const empty = { nombre: "", especialidad: "" };
+  const [form, setForm] = useState(empty);
 
   useEffect(() => {
     if (open) {
-      setForm(initial ?? { nombre: "", especialidad: "", email: "", telefono: "" });
+      // Cargar para editar o limpiar
+      setForm(
+        initial
+          ? { nombre: initial.nombre ?? "", especialidad: initial.especialidad ?? "" }
+          : empty
+      );
     }
   }, [open, initial]);
 
   if (!open) return null;
 
-  const canSave = form.nombre.trim() && form.especialidad.trim();
+  const canSave =
+    form.nombre.trim().length > 0 && form.especialidad.trim().length > 0;
+
+  const handleSave = () => {
+    if (!canSave) return;
+    onSave?.({
+      nombre: form.nombre.trim(),
+      especialidad: form.especialidad.trim(),
+    });
+  };
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
@@ -29,7 +39,7 @@ export default function NewDoctorModal({ open, onClose, onSave, initial = null }
             <input
               className="h-10 w-full rounded-lg border border-slate-300 px-3"
               value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+              onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
               placeholder="Dr./Dra. ..."
             />
           </div>
@@ -39,43 +49,25 @@ export default function NewDoctorModal({ open, onClose, onSave, initial = null }
             <input
               className="h-10 w-full rounded-lg border border-slate-300 px-3"
               value={form.especialidad}
-              onChange={(e) => setForm({ ...form, especialidad: e.target.value })}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, especialidad: e.target.value }))
+              }
               placeholder="Cardiología, Oftalmología…"
             />
           </div>
-
-          <div>
-            <label className="mb-1 block text-sm text-slate-600">Email</label>
-            <input
-              className="h-10 w-full rounded-lg border border-slate-300 px-3"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="doctor@ejemplo.cl"
-              type="email"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm text-slate-600">Teléfono</label>
-            <input
-              className="h-10 w-full rounded-lg border border-slate-300 px-3"
-              value={form.telefono}
-              onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-              placeholder="+569XXXXXXX"
-              type="tel"
-            />
-          </div>
-        </div>
+        </div> {/* ← este cierre faltaba */}
 
         <div className="mt-6 flex justify-center gap-3">
           <button
-            onClick={() => canSave && onSave?.(form)}
+            type="button"
+            onClick={handleSave}
             disabled={!canSave}
             className="h-10 rounded-full bg-[#0C4581] px-5 text-sm font-medium text-white disabled:opacity-50"
           >
             Guardar
           </button>
           <button
+            type="button"
             onClick={onClose}
             className="h-10 rounded-full bg-[#FD0327] px-5 text-sm font-medium text-white"
           >
