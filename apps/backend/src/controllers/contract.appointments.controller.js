@@ -3,6 +3,7 @@ import { prisma } from "../config/prisma.js";
 import { mapCitaToDTO } from "../contracts/dto.mappers.js";
 import { ok, created, noContent, pageOut } from "../contracts/http.js";
 import {sendTemplate} from '../../../bot-gateway/Prueba-04.js'
+import { enviarRecordatorio } from "../../../bot-gateway/Prueba-05.js"; 
 
 const normalizeSort = (sort) => {
   const [campo, dir] = String(sort || "fechaCita:asc").split(":");
@@ -103,6 +104,7 @@ export const AppointmentsContractController = {
       next(e);
     }
   },
+  /*
   sendBot: async (req, res, next) => {
     console.warn('Entro en el controlador de citas')
     console.log('req.body:', req.body)
@@ -111,10 +113,13 @@ export const AppointmentsContractController = {
     
     //El req.body trae el/los ID's de las citas, por lo que tocara ir a obtener los datos de las citas a la DB
     try{
-      await sendTemplate();
+      //Llamar a controlador, el cual va a buscar los datos a la DB y luego enviar el mensaje
+      await enviarRecordatorio(ids);
+      //await sendTemplate();
       console.log('Entro en el controlador---------------------------------')
     }catch(e){
       console.log('No entro en el controlador')
     }
   }
+    */
 }

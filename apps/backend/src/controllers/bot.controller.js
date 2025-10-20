@@ -45,3 +45,15 @@ export async function getConfirmationState(req, res) {
     res.status(400).json({ ok: false, error: err.message });
   }
 }
+
+//-----------------------------------------Rellenado de mensajes del bot-------------------------------------------
+//Funcion que obtiene el o los id's de las citas y va a buscar los datos a la DB para llenar el mensaje
+/*
+export async function rellenadoMensajes(req, res) {
+  try{
+
+  }catch(e){
+    
+  }
+}
+*/
