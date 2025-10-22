@@ -2,7 +2,7 @@ import { Router } from 'express';
 import crypto from 'crypto';
 import { logInbound } from '../lib/logger.js';
 import { forwardInbound } from '../lib/forward.js';
-
+process.loadEnvFile('../.env');
 const router = Router();
 
 /**
@@ -53,6 +53,7 @@ router.post('/webhook', async (req, res) => {
       for (const change of changes) {
         const value = change?.value;
         const messages = value?.messages ?? [];
+        console.log('Received messages: ', messages);
         const contacts = value?.contacts ?? [];
 
         // Puede venir en messages[0].from o contacts[0].wa_id

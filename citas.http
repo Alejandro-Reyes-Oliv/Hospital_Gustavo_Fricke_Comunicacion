@@ -3,4 +3,4 @@ GET http://localhost:8080/api/appointments
 
 ###Obtencion de una cita médica por ID
 
-GET http://localhost:8080/api/appointments?id=2
+GET http://localhost:8080/api/appointments?id=1
