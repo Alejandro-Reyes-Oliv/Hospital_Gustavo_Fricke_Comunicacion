@@ -4,6 +4,8 @@ import { mapCitaToDTO } from "../contracts/dto.mappers.js";
 import { ok, created, noContent, pageOut } from "../contracts/http.js";
 import {sendTemplate} from '../../../bot-gateway/Prueba-04.js'
 import { enviarRecordatorio } from "../../../bot-gateway/Prueba-05.js"; 
+import { obtenerDatosCita } from "../services/confirmationMessageService.js";
+import { sendConfirmation } from "../../../bot-gateway/templates/confirmTemplate.js";
 
 const normalizeSort = (sort) => {
   const [campo, dir] = String(sort || "fechaCita:asc").split(":");
@@ -104,22 +106,31 @@ export const AppointmentsContractController = {
       next(e);
     }
   },
-  /*
+  
+  //-----------------------------------------Envio de Mensaje a traves del boton-------------------------------------------
+  //Funcion que se ejecuta al presionar el boton de enviar bot
+  //Entradas: req.body.ids = [id1, id2, id3...]  (Array de id's de las citas)
+
   sendBot: async (req, res, next) => {
-    console.warn('Entro en el controlador de citas')
-    console.log('req.body:', req.body)
+    //console.warn('Entro en el controlador de citas')
+    //console.log('req.body:', req.body)
     const { ids = []} = req.body; // Aca se guardan el o los id's de las citas que entran a la funcion (Ya que el front solo manda las id's)
-    console.log('ids:', ids)
+    //console.log('ids:', ids)
     
     //El req.body trae el/los ID's de las citas, por lo que tocara ir a obtener los datos de las citas a la DB
+    //llamar a funcion de confirmationMessageController para obtener los datos y enviar el mensaje
+    
     try{
+      const datosCitas = await obtenerDatosCita(ids)
+      //console.log('datos del obetenDatosCita:', datosCitas)
+      //console.log('nombre paciente: ', datosCitas[0].paciente_nombre)
       //Llamar a controlador, el cual va a buscar los datos a la DB y luego enviar el mensaje
-      await enviarRecordatorio(ids);
-      //await sendTemplate();
-      console.log('Entro en el controlador---------------------------------')
+      //await enviarRecordatorio(ids);
+      await sendConfirmation(datosCitas);
+      //console.log('Entro en el controlador---------------------------------')
     }catch(e){
+      res.status(400).json({ ok: false, error: e.message });
       console.log('No entro en el controlador')
     }
   }
-    */
 }
