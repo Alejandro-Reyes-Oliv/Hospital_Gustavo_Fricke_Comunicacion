@@ -20,7 +20,7 @@ export async function listCitas(params = {}) {
   if (params.from)     query.set('from', params.from);
   if (params.to)       query.set('to', params.to);
 
-  console.log("Estado de nose que: ", params.estado); //_------------------------------------------------------------------------
+  //console.log("Estado de nose que: ", params.estado); //_------------------------------------------------------------------------
   // Asegura page/pageSize numéricos por defecto
   query.set('page', String(params.page ?? 1));
   query.set('pageSize', String(params.pageSize ?? 1000));

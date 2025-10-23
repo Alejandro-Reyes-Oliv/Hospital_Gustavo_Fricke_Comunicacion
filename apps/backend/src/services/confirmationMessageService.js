@@ -5,7 +5,7 @@ import {prisma} from '../config/prisma.js';
 //----------------------------------------Obtencion de datos de cita y llenado de mensaje-------------------------------------------
 //Funcion que obtiene los datos de la cita a traves del id de la cita
 //Entradas: ids = [id1, id2, id3...]  (Array de id's de las citas)
-//Salida: Array con el telefono, nombre del paciente, especialidad, fecha de la cita
+//Salida: Array con el telefono, nombre del paciente, especialidad, fecha de la cita y la id para luego asociarlo al mensaje
 
 
 export async function obtenerDatosCita(ids = []){
@@ -25,6 +25,7 @@ export async function obtenerDatosCita(ids = []){
                     paciente_nombre: true,
                     especialidad_snap : true,
                     fecha_hora: true,
+                    id:true
                 }
         })
         //Limpieza de la fecha y hora para que quede en formato legible
@@ -36,7 +37,7 @@ export async function obtenerDatosCita(ids = []){
             cita.fecha_hora[1] = cita.fecha_hora[1].slice(0,5); //Dejar solo la hora en formato HH:MM e.j (00:01)
         });
 
-        /* ........................................NO IMPLEMENTADO.......................................
+        /* ........................................Solo Ejemplo.......................................
         //Misma funcion pero con map
         datosCitas.map(cita =>{
             cita.fecha_hora = cita.fecha_hora.toISOString().slice(0, 19).replace('T', ' ').split(' ');
@@ -45,9 +46,14 @@ export async function obtenerDatosCita(ids = []){
 
         //Formateo del numero telefonico
         datosCitas.forEach(numero => {
+            if (numero.paciente_telefono.length == 10 || numero.paciente_telefono.length >= 13 || numero.paciente_telefono.length <= 8) {
+                console.warn(`El numero telefonico ${numero.paciente_telefono} tiene una longitud invalida.`);
+                return [];
+            }
             if (!numero.paciente_telefono.startsWith('56') && numero.paciente_telefono.length === 9) {
                 numero.paciente_telefono = '56' + numero.paciente_telefono;
             }
+
         });
         
         return datosCitas;
@@ -79,3 +85,79 @@ function mapearFecha(fechaStr) {
     const [year, month, day] = fechaStr.split('-');
     return `${day} de ${meses[month]} de ${year}`;
 }
+
+//----------------------------------------Mapeado de respuestas de cita--------------------------------------------
+//Funcion que mapea las respuestas del usuario desde el payload del boton al estado de la cita
+//Entrada: respuesta = 'confirmar' o 'cancelar'
+//Salida: 'confirmada' o 'cancelada'
+function mapearRepuesta(respuesta){
+    const respuestaMapeada = {
+        'confirmar' : 'confirmada',
+        'cancelar' : 'cancelada',
+        'no asistiré' : 'cancelada',
+        'asistiré' : 'confirmada'
+    }
+    return respuestaMapeada[respuesta];
+}
+
+
+//----------------------------------------Guardado de id de mensaje enviado en cita-------------------------------------------
+//Funcion que guarda el ID del mensaje enviado en la DB de citas para asociar el mensaje con la cita
+//To Do: Cambiar el campo donde se guarda el ID del mensaje, ya que actualmente se esta guardando en paciente_rut por falta de un campo adecuado - - - - - - - - - - - - - - - - - -
+//Entradas: wamid_envio: ID del mensaje enviado por Meta, idCita: ID de la cita
+//Salida: Ninguna
+export async function asociarMensajeCita(wamid_envio, idCita){
+    try{
+        await prisma.cita.update({
+            where: { id: idCita },
+            data: { paciente_rut: wamid_envio }  //Esto se tiene que cambiar - - - - - -- - -- - -- - -- - -- - -- - -- 
+        });
+        //console.log(`ID del mensaje ${wamid_envio} asociado a la cita ${idCita} correctamente.`);
+    }catch(error){
+        console.error('Error al asociar el ID del mensaje a la cita: ', error);
+    }           
+}
+
+//----------------------------------------Buscar cita por wamid-------------------------------------------
+//Funcion que busca la cita en la DB a traves del wamid del mensaje enviado
+//Entradas: wamid: ID del mensaje enviado
+async function buscarCitaPorWamid(wamid) {
+    try {
+        const cita = await prisma.cita.findFirst({
+            where: { paciente_rut: wamid },
+            select: {
+                id: true,
+            }
+        });
+        return cita;
+    } catch (error) {
+        console.error('Error al buscar la cita por wamid: ', error);
+        return null;
+    }
+}
+
+//----------------------------------------Cambio de estado de cita segun respuesta del paciente-------------------------------------------
+//Funcion que cambia el estado de la cita segun la respuesta del paciente
+//Entradas: wamid_contexto: ID del contexto del mensaje recibido (es decir, del mensaje al que se responde), respuesta: 'confirmada' o 'cancelada'
+//Salida: Ninguna
+export async function cambiarEstadoCita(wamid_contexto, respuesta){
+    try{
+        if (wamid_contexto ){
+            const idCita = await buscarCitaPorWamid(wamid_contexto);
+            const respuestaMapeada = mapearRepuesta(respuesta); //Mapear la respuesta del usuario a el estado de la cita
+            console.log('Respuesta mapeada: ', respuestaMapeada);
+            console.log("id del mensaje contexto: ", wamid_contexto)
+            console.log("id de la cita obtenida: ", idCita.id);
+            
+            await prisma.cita.update({
+                where: {id : idCita.id, paciente_rut: wamid_contexto }, //Buscar la cita por ID y por el wamid del mensaje al que se responde
+                data: { estado: respuestaMapeada }
+            });
+        
+        }
+        //console.log(`Estado de la cita ${idCita} cambiado a ${respuesta} correctamente.`);
+    }catch(error){
+        console.error('Error al cambiar el estado de la cita: ', error);
+    }
+}
+

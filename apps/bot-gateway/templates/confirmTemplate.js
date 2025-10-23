@@ -1,7 +1,9 @@
 //Plantilla de confirmacion de cita medica via WhatsApp usando la API de Meta
+//To Do: Hacer que solo sea la plantilla y el fetch se haga en el service o controller ---------------------
 //entradas: datosCita(paciente_nombre, especialidad_snap, fecha_hora, numero_telefono)
-
 process.loadEnvFile('../.env');
+import { asociarMensajeCita } from "../../backend/src/services/confirmationMessageService.js";
+
 
 const TOKEN = process.env.WSP_TOKEN || 'EAAPcFHLFxk4BPgbS4RKu4Qy5AUSlRDC2kAKDPb3mrcOvZC7Qr8RUTUvjPdHna9ZBxfUTiA0ZADed3ZBjDFAeltxHAZA0WWBO5luwqklQ4lZBV2h7c3uphYQtsrOTqsC27v1ckZBgnKnZC3kZAT3tJx1fohhqsPcsx1IkEbCyuZBhaZBFy5JE97UlY7QWIVI12soUMbleAZDZD';
 const GRAPH_BASE = process.env.GRAPH_BASE || 'https://graph.facebook.com/v23.0/733696073164766';
@@ -45,8 +47,11 @@ export async function sendConfirmation(datosCitas) {
  console.log('Fecha y hora cita:', datosCitas[0].fecha_hora[0], datosCitas[0].fecha_hora[1])
  */
   try {
-    
+    //Para no delegarle tanta responsabilidad a la template, deberia solo devovler la funcion de rellenadoDatos y hacer el fetch en otro lado, por ejemplo en el controller y service
     datosCitas.forEach(async cita => {  //Aca se itera por cada cita en el array de citas para enviar el mensaje individualmente
+      
+      
+      
       const response = await fetch(`${GRAPH_BASE}/messages`, {
       method: "POST",
       headers: {
@@ -59,7 +64,21 @@ export async function sendConfirmation(datosCitas) {
       });
     
       const data = await response.json();
+      //console.log("Respuesta de Meta: al enviar plantilla", data);
+      //Con la data se puede guardar el ID del mensaje enviado en la base de datos de las citas para asociar el id y el mensaje
+      const wamid_envio = data.messages[0].id;
+      const idCita = cita.id; //Aca se obtiene la id de la cita actual en la iteracion
+      //Llamar a la funcion para guardar el ID del mensaje enviado en la DB
+      await asociarMensajeCita(wamid_envio, idCita);
+      
+      
+      //To Do: Hacer que retorne o una lista o por ejemplo unir tanto el wamid con el id cita y retornar una lsita con todos y luego en otro lado separarlos y asociarlos
+      
+      //console.log("Wamid del mensaje enviado: ", wamid_envio);
+      //console.log("ID de cita: ", idCita);
+      
 
+      
     });
      
     

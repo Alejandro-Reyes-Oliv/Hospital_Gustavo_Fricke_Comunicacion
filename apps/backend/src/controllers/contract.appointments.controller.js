@@ -126,11 +126,15 @@ export const AppointmentsContractController = {
       //console.log('nombre paciente: ', datosCitas[0].paciente_nombre)
       //Llamar a controlador, el cual va a buscar los datos a la DB y luego enviar el mensaje
       //await enviarRecordatorio(ids);
+      
       await sendConfirmation(datosCitas);
+      
+      
+      //console.log('id de mensaje enviado y id de cita:', wamid_envio, idCita)
       //console.log('Entro en el controlador---------------------------------')
     }catch(e){
       res.status(400).json({ ok: false, error: e.message });
-      console.log('No entro en el controlador')
+      //console.log('No entro en el controlador')
     }
   }
 }
