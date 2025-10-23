@@ -1,6 +1,7 @@
 // apps/backend/src/controllers/bot.controller.js
 import * as service from '../services/bot.service.js';
-
+import { cambiarEstadoCita } from '../services/confirmationMessageService.js';
+/*
 export async function sendConfirmation(req, res) {
   try {
     const { citaId, toPhone } = req.body;
@@ -14,17 +15,29 @@ export async function sendConfirmation(req, res) {
     res.status(400).json({ ok: false, error: err.message });
   }
 }
-
+*/
 export async function ingestEvent(req, res) {
+  
   try {
-    await service.processInboundEvent(req.body);
+    console.log("body que entra en el controller", req.body, " -------------------------------------")
+    
+    const from = req.body.entry[0].changes[0].value.messages[0].from;
+    const reply = req.body.entry[0].changes[0].value.messages[0].button.payload.toLowerCase();
+    const wamid = req.body.entry[0].changes[0].value.messages[0].id;
+    const wamid_contexto = req.body.entry[0].changes[0].value.messages[0].context.id
+    const timestamp = req.body.entry[0].changes[0].value.messages[0].timestamp;
+    console.log("Datos que llegan al backend desde el gateway: ", { from, reply, wamid, timestamp })
+    //await service.processInboundEvent(req.body);
+    await cambiarEstadoCita(wamid_contexto, reply)
+
     res.json({ ok: true });
   } catch (err) {
     console.error('ingestEvent error:', err);
     res.status(400).json({ ok: false, error: err.message });
   }
+  
 }
-
+/*
 export async function listMessagesByCita(req, res) {
   try {
     const { citaId } = req.query;
@@ -43,17 +56,6 @@ export async function getConfirmationState(req, res) {
     res.json({ ok: true, ...data });
   } catch (err) {
     res.status(400).json({ ok: false, error: err.message });
-  }
-}
-
-//-----------------------------------------Rellenado de mensajes del bot-------------------------------------------
-//Funcion que obtiene el o los id's de las citas y va a buscar los datos a la DB para llenar el mensaje
-/*
-export async function rellenadoMensajes(req, res) {
-  try{
-
-  }catch(e){
-    
   }
 }
 */
