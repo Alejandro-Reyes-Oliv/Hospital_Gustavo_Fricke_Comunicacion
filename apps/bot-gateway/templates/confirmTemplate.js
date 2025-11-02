@@ -6,7 +6,7 @@ import { asociarMensajeCita } from "../../backend/src/services/confirmationMessa
 
 
 const TOKEN = process.env.WSP_TOKEN || 'EAAPcFHLFxk4BPgbS4RKu4Qy5AUSlRDC2kAKDPb3mrcOvZC7Qr8RUTUvjPdHna9ZBxfUTiA0ZADed3ZBjDFAeltxHAZA0WWBO5luwqklQ4lZBV2h7c3uphYQtsrOTqsC27v1ckZBgnKnZC3kZAT3tJx1fohhqsPcsx1IkEbCyuZBhaZBFy5JE97UlY7QWIVI12soUMbleAZDZD';
-const GRAPH_BASE = process.env.GRAPH_BASE || 'https://graph.facebook.com/v23.0/733696073164766';
+const GRAPH_BASE =  'https://graph.facebook.com/v23.0/733696073164766';
 //Por alguna razon, al importar estas variables de entorno en este archivo, no funcionan correctamente en tiempo de ejecución, por lo que se definen valores por defecto arriba.
 //console.log('GRAPH BASE EN confirmTemplate.js:', GRAPH_BASE);
 //console.log('TOKEN EN confirmTemplate.js:', TOKEN);
@@ -51,7 +51,7 @@ export async function sendConfirmation(datosCitas) {
     datosCitas.forEach(async cita => {  //Aca se itera por cada cita en el array de citas para enviar el mensaje individualmente
       
       
-      
+      console.log("fetch graph_base",GRAPH_BASE);
       const response = await fetch(`${GRAPH_BASE}/messages`, {
       method: "POST",
       headers: {
@@ -62,9 +62,9 @@ export async function sendConfirmation(datosCitas) {
       
   
       });
-    
+      
       const data = await response.json();
-      //console.log("Respuesta de Meta: al enviar plantilla", data);
+      console.log("Respuesta de Meta: al enviar plantilla", data);
       //Con la data se puede guardar el ID del mensaje enviado en la base de datos de las citas para asociar el id y el mensaje
       const wamid_envio = data.messages[0].id;
       const idCita = cita.id; //Aca se obtiene la id de la cita actual en la iteracion

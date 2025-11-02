@@ -6,7 +6,7 @@ process.loadEnvFile('../.env');
 //Config
 const app = express();
 const PORT = process.env.PORT || 8082;
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8080";
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || "frikitona";
 //console.log("Config: ", process.env.BACKEND_URL);
 

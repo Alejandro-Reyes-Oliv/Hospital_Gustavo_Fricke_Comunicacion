@@ -1,7 +1,7 @@
 // src/services/citas.p2.js
 
 import api from '../lib/apiClient.js'
-api.baseURL ||= 'http://localhost:8000';
+api.baseURL ||= 'http://localhost:8080';
 import { mapCitaApiToDTO } from '../lib/dto.js'
 import { STATUS } from '../lib/constants.js'
 import * as local from './citas.js'
@@ -10,7 +10,7 @@ import * as local from './citas.js'
  * LIST: backend si hay baseURL; si no, mock JSON → sync a localStorage; si falla, localStorage puro.
  */
 export async function listCitas(params = {}) {
-  const baseURL = import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:8000';
+  const baseURL = import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:8080';
 
   const query = new URLSearchParams();
   if (params.search)   query.set('search', params.search);
@@ -51,23 +51,26 @@ export async function listCitas(params = {}) {
  * CREATE: backend si hay baseURL; si no, local.addAppointment()
  */
 export async function addAppointment(newItem) {
-  if (!api.baseURL) return local.addAppointment(newItem)
+  if (!api.baseURL) return local.addAppointment(newItem);
+
   const body = {
     nombrePaciente: newItem.nombrePaciente ?? newItem.paciente,
-    rut: newItem.rut || undefined,
+    // ❌ rut eliminado
     telefono: newItem.telefono || undefined,
     fechaCita: newItem.fechaCita,        // ISO recomendado
     medicoId: newItem.medicoId,
     estadoCita: normalizeStatus(newItem.estadoCita),
     origin: "web",
-  }
-  const { ok, data } = await api.post('/api/appointments', { body })
+  };
+
+  const { ok, data } = await api.post('/api/appointments', { body });
   if (!ok) {
-    console.warn('POST /api/appointments falló, usando fuente local:')
-    return local.addAppointment(newItem)
+    console.warn('POST /api/appointments falló, usando fuente local:');
+    return local.addAppointment(newItem);
   }
-  return mapCitaApiToDTO(data)
+  return mapCitaApiToDTO(data);
 }
+
 
 /**
  * UPDATE STATUS (bulk o 1): backend preferido; fallback local
