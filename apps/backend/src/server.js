@@ -2,7 +2,7 @@
 import { app } from "./app.js";
 import botRoutes from "./routes/bot.routes.js";
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8080;
 
 // monta rutas ANTES de listen
 app.use("/api", botRoutes);
