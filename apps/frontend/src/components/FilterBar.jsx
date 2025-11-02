@@ -51,11 +51,6 @@ export default function FiltersBar({
         ))}
       </select>
 
-      {/* Mostrar RUT */}
-      <label className="flex items-center gap-2 text-sm text-slate-700">
-        <input type="checkbox" className="h-4 w-4" checked={!!showRut} onChange={onToggleRut} />
-        Mostrar RUT
-      </label>
 
       {/* Acciones (derecha) */}
       <div className="ml-auto flex items-center gap-2">

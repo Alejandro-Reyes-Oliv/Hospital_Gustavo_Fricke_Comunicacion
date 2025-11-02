@@ -34,7 +34,6 @@ export default function NewAppointmentModal({ open, onClose, onCreate, medicos =
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <input name="nombrePaciente" className="border rounded px-3 py-2"
             placeholder="Nombre del paciente" required minLength={2} />
-          <input name="rut" className="border rounded px-3 py-2" placeholder="RUT (opcional)" />
           <input name="fechaCita" type="datetime-local" className="border rounded px-3 py-2" placeholder="Fecha" required />
 
           {/* Médico (envía el id). Además mandamos nombre oculto para compatibilidad. */}
@@ -63,7 +62,18 @@ export default function NewAppointmentModal({ open, onClose, onCreate, medicos =
             placeholder="Especialidad"
           />
 
-          <input name="telefono" className="border rounded px-3 py-2" placeholder="Teléfono" />
+          <input
+              name="telefono"
+              type="tel"
+              inputMode="numeric"
+              maxLength={9}
+              pattern="[0-9]{9}"
+              onInput={(e) => {
+                e.currentTarget.value = e.currentTarget.value.replace(/\D/g, "").slice(0, 9);
+              }}
+              className="border rounded px-3 py-2 w-full"
+              placeholder="Teléfono (9 dígitos, sin +56)"
+          />
 
           <select name="estadoCita" className="border rounded px-3 py-2 md:col-span-2" defaultValue="pendiente">
             <option value="pendiente">Pendiente</option>
