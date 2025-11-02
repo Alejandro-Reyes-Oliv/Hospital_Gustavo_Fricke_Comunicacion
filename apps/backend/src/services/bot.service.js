@@ -233,8 +233,8 @@ async function ingestNormalizedEvent(evt) {
       // Actualiza estado de cita si aplica
       if (targetCitaId) {
         let state = "UNKNOWN";
-        if (action === "CONFIRMAR") state = "CONFIRMED";
-        if (action === "RECHAZAR") state = "REJECTED";
+        if (action === "CONFIRMAR") state = "CONFIRMED"; //Deberia ser "confirmada" ------------------------------------------------------------------------------------------------
+        if (action === "RECHAZAR") state = "REJECTED";  //Deberia ser "cancelada"------------------------------------------------------------------------------------------------
 
         await prisma.citaConfirmation.upsert({
           where: { citaId: targetCitaId },
@@ -265,8 +265,8 @@ async function ingestNormalizedEvent(evt) {
   // 5) Actualizar estado de la cita si logramos identificarla
   if (targetCitaId) {
     let state = "UNKNOWN";
-    if (action === "CONFIRMAR") state = "CONFIRMED";
-    if (action === "RECHAZAR") state = "REJECTED";
+    if (action === "CONFIRMAR") state = "CONFIRMED"; //Deberia ser "confirmada" ------------------------------------------------------------------------------------------------
+    if (action === "RECHAZAR") state = "REJECTED";   //Deberia ser "cancelada"------------------------------------------------------------------------------------------------
 
     await prisma.citaConfirmation.upsert({
       where: { citaId: targetCitaId },
@@ -287,5 +287,5 @@ export async function listMessages({ citaId }) {
 
 export async function getConfirmation({ citaId }) {
   const c = await prisma.citaConfirmation.findUnique({ where: { citaId } });
-  return c ?? { citaId, state: "PENDING" };
+  return c ?? { citaId, state: "PENDING" };    //Deberia ser "pendiente"------------------------------------------------------------------------------------------------
 }

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import crypto from 'crypto';
 import { logInbound } from '../lib/logger.js';
 import { forwardInbound } from '../lib/forward.js';
-
+process.loadEnvFile('../.env');
 const router = Router();
 
 /**
@@ -40,12 +40,14 @@ function verifyMetaSignature(req) {
  * Guardamos todo y extraemos mensaje de texto si existe.
  */
 router.post('/webhook', async (req, res) => {
+  res.sendStatus(200); // responder rápido para que Meta no reintente
   try {
     if (!verifyMetaSignature(req)) {
       return res.sendStatus(401);
     }
 
     const payload = req.body;
+    //console.log("Payload del webhook: ",payload)
     // Estructura típica: entry[].changes[].value.messages[] / contacts[]
     const entries = payload?.entry ?? [];
     for (const entry of entries) {
@@ -53,6 +55,7 @@ router.post('/webhook', async (req, res) => {
       for (const change of changes) {
         const value = change?.value;
         const messages = value?.messages ?? [];
+        //console.log('Received messages: ', messages);
         const contacts = value?.contacts ?? [];
 
         // Puede venir en messages[0].from o contacts[0].wa_id
@@ -67,8 +70,6 @@ router.post('/webhook', async (req, res) => {
       }
     }
 
-    // Responder rápido con 200 OK para que Meta no reintente
-    return res.sendStatus(200);
   } catch (err) {
     console.error('webhook error:', err);
     return res.sendStatus(500);
