@@ -1,11 +1,16 @@
+process.loadEnvFile('../.env');
+
 import { CitaService } from "../services/cita.service.js";
 import { prisma } from "../config/prisma.js";
 import { mapCitaToDTO } from "../contracts/dto.mappers.js";
 import { ok, created, noContent, pageOut } from "../contracts/http.js";
-import {sendTemplate} from '../../../bot-gateway/Prueba-04.js'
-import { enviarRecordatorio } from "../../../bot-gateway/Prueba-05.js"; 
+//import {sendTemplate} from '../../../bot-gateway/Prueba-04.js'
+//import { enviarRecordatorio } from "../../../bot-gateway/Prueba-05.js"; 
 import { obtenerDatosCita } from "../services/confirmationMessageService.js";
-import { sendConfirmation } from "../../../bot-gateway/templates/confirmTemplate.js";
+//import { sendConfirmation } from "../../../bot-gateway/templates/confirmTemplate.js";
+import { rellenadoDatos } from "../../../bot-gateway/templates/confirmTemplate.js";
+import { asociarMensajeCita } from "../services/confirmationMessageService.js";
+
 
 const normalizeSort = (sort) => {
   const [campo, dir] = String(sort || "fechaCita:asc").split(":");
@@ -112,29 +117,40 @@ export const AppointmentsContractController = {
   //Entradas: req.body.ids = [id1, id2, id3...]  (Array de id's de las citas)
 
   sendBot: async (req, res, next) => {
-    //console.warn('Entro en el controlador de citas')
-    //console.log('req.body:', req.body)
-    const { ids = []} = req.body; // Aca se guardan el o los id's de las citas que entran a la funcion (Ya que el front solo manda las id's)
-    //console.log('ids:', ids)
-    
-    //El req.body trae el/los ID's de las citas, por lo que tocara ir a obtener los datos de las citas a la DB
-    //llamar a funcion de confirmationMessageController para obtener los datos y enviar el mensaje
-    
+    const { WSP_TOKEN, GRAPH_BASE } = process.env;
+
     try{
-      const datosCitas = await obtenerDatosCita(ids)
-      //console.log('datos del obetenDatosCita:', datosCitas)
-      //console.log('nombre paciente: ', datosCitas[0].paciente_nombre)
-      //Llamar a controlador, el cual va a buscar los datos a la DB y luego enviar el mensaje
-      //await enviarRecordatorio(ids);
+      const { ids = []} = req.body; // Aca se guardan el o los id's de las citas que entran a la funcion (Ya que el front solo manda las id's)
+      const datosCitas = await obtenerDatosCita(ids) //Llamar a la funcion que obtiene los datos de la cita a traves de las ids entrantes
       
-      await sendConfirmation(datosCitas);
+      //await sendConfirmation(datosCitas);
+
+      //Separacion de responsabilidades: El controller llama al service para obtener los datos y luego llama a la template para enviar el mensaje
+      console.log('Datos para enviar confirmacion:', datosCitas)
+      datosCitas.forEach(async cita => {  //Aca se itera por cada cita en el array de citas para enviar el mensaje individualmente
+            const response = await fetch(`${GRAPH_BASE}/messages`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${WSP_TOKEN}`,
+              "Content-Type": "application/json"
+            },
+            body: rellenadoDatos(cita.paciente_nombre, cita.especialidad_snap, cita.fecha_hora[0], cita.fecha_hora[1], cita.paciente_telefono)
+            
+        
+            });
+          
+            const data = await response.json();
+            //console.log("Respuesta de Meta: al enviar plantilla", data);
+            //Con la data se puede guardar el ID del mensaje enviado en la base de datos de las citas para asociar el id y el mensaje
+            const wamid_envio = data.messages[0].id;
+            const idCita = cita.id; //Aca se obtiene la id de la cita actual en la iteracion
+            //Llamar a la funcion para guardar el ID del mensaje enviado en la DB
+            await asociarMensajeCita(wamid_envio, idCita);
+          });
       
       
-      //console.log('id de mensaje enviado y id de cita:', wamid_envio, idCita)
-      //console.log('Entro en el controlador---------------------------------')
     }catch(e){
       res.status(400).json({ ok: false, error: e.message });
-      //console.log('No entro en el controlador')
     }
   }
 }

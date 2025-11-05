@@ -121,6 +121,7 @@ export async function asociarMensajeCita(wamid_envio, idCita){
 //----------------------------------------Buscar cita por wamid-------------------------------------------
 //Funcion que busca la cita en la DB a traves del wamid del mensaje enviado
 //Entradas: wamid: ID del mensaje enviado
+//Salida: objeto cita con el ID de la cita e.j {id: 20}
 async function buscarCitaPorWamid(wamid) {
     try {
         const cita = await prisma.cita.findFirst({
@@ -155,7 +156,6 @@ export async function cambiarEstadoCita(wamid_contexto, respuesta){
             });
         
         }
-        //console.log(`Estado de la cita ${idCita} cambiado a ${respuesta} correctamente.`);
     }catch(error){
         console.error('Error al cambiar el estado de la cita: ', error);
     }
