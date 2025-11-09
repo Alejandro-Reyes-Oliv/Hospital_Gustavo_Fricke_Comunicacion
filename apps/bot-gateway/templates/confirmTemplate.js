@@ -12,6 +12,30 @@ console.log('TEMPLATE EN confirmTemplate.js:', TEMPLATE);
 //console.log('GRAPH BASE EN confirmTemplate.js:', GRAPH_BASE);
 //console.log('TOKEN EN confirmTemplate.js:', TOKEN);
 
+export function rellenadoDatos (nombrePaciente, fechaCita, horaCita, numeroPaciente) {
+    
+    const payload = {
+        messaging_product: "whatsapp",
+        to: numeroPaciente, 
+        type: "template",
+        template: {
+            name: TEMPLATE, 
+            language: { code: "es" },        
+            components: [
+            {
+                type: "body",
+                parameters: [
+                { type: "text", text: nombrePaciente },
+                { type: "text", text: fechaCita },
+                { type: "text", text: horaCita },
+                ]
+            }
+            ]
+        }
+        };
+    return JSON.stringify(payload)
+}
+/*
 export function rellenadoDatos (nombrePaciente, especialidad, fechaCita, horaCita, numeroPaciente) {
     
     const payload = {
@@ -37,7 +61,7 @@ export function rellenadoDatos (nombrePaciente, especialidad, fechaCita, horaCit
         };
     return JSON.stringify(payload)
 }
-
+*/
 /*
 export async function sendConfirmation(datosCitas) {
    
