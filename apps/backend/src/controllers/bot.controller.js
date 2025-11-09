@@ -27,8 +27,20 @@ export async function ingestEvent(req, res) {
     const wamid_contexto = req.body.entry[0].changes[0].value.messages[0].context.id
     const timestamp = req.body.entry[0].changes[0].value.messages[0].timestamp;
     console.log("Datos que llegan al backend desde el gateway: ", { from, reply, wamid, timestamp })
-    //await service.processInboundEvent(req.body);
     await cambiarEstadoCita(wamid_contexto, reply)
+    //Aca debo colocar la logica en caso de que lo que envie el webhook sea un status
+    if (req.body.entry[0].changes[0].value.statuses) {
+      console.log("Es un status lo que llega al backend");
+    }
+    
+    
+    //Esta parte es de si hay contexto, es decir, si el usuario esta respondiendo a un mensaje enviado por el bot
+    //await service.processInboundEvent(req.body);
+    if(req.body.entry[0].changes[0].value.messages){
+      console.log("Es una respuesta lo que llega al backend");
+    }
+
+    
 
     res.json({ ok: true });
   } catch (err) {

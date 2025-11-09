@@ -53,7 +53,11 @@ export async function obtenerDatosCita(ids = []){
             if (!numero.paciente_telefono.startsWith('56') && numero.paciente_telefono.length === 9) {
                 numero.paciente_telefono = '56' + numero.paciente_telefono;
             }
-
+            /*
+            if (!numero.paciente_telefono.startsWith('56') && numero.paciente_telefono.length === 8) {
+                numero.paciente_telefono = '569' + numero.paciente_telefono;
+            }
+            */
         });
         
         return datosCitas;
@@ -99,7 +103,19 @@ function mapearRepuesta(respuesta){
     }
     return respuestaMapeada[respuesta];
 }
-
+//----------------------------------------Mapeado de estados de mensaje--------------------------------------------
+//Funcion que mapea los estados del mensaje recibidos por el webhook al español
+//Entrada: estado = 'sent', 'delivered', 'read'
+//Salida: 'enviado', 'entregado', 'leido'
+function mapearEstado(estado){
+    const estadoMapeado = {
+        'sent' : 'enviado',
+        'delivered' : 'recibido',
+        'read' : 'leido'
+    }
+    return estadoMapeado[estado];
+    
+}
 
 //----------------------------------------Guardado de id de mensaje enviado en cita-------------------------------------------
 //Funcion que guarda el ID del mensaje enviado en la DB de citas para asociar el mensaje con la cita
