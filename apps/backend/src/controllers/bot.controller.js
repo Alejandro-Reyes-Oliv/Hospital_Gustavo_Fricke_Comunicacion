@@ -1,6 +1,6 @@
 // apps/backend/src/controllers/bot.controller.js
 import * as service from '../services/bot.service.js';
-import { cambiarEstadoCita } from '../services/confirmationMessageService.js';
+import { cambiarEstadoCita, cambiarEstadoMensaje } from '../services/confirmationMessageService.js';
 /*
 export async function sendConfirmation(req, res) {
   try {
@@ -21,16 +21,24 @@ export async function ingestEvent(req, res) {
   try {
     console.log("body que entra en el controller", req.body, " -------------------------------------")
     
-    const from = req.body.entry[0].changes[0].value.messages[0].from;
-    const reply = req.body.entry[0].changes[0].value.messages[0].button.payload.toLowerCase();
-    const wamid = req.body.entry[0].changes[0].value.messages[0].id;
-    const wamid_contexto = req.body.entry[0].changes[0].value.messages[0].context.id
-    const timestamp = req.body.entry[0].changes[0].value.messages[0].timestamp;
-    console.log("Datos que llegan al backend desde el gateway: ", { from, reply, wamid, timestamp })
-    await cambiarEstadoCita(wamid_contexto, reply)
+    //const from = req.body.entry[0].changes[0].value.messages[0].from;
+    //const reply = req.body.entry[0].changes[0].value.messages[0].button.payload.toLowerCase();
+    //const wamid = req.body.entry[0].changes[0].value.messages[0].id;
+    //const wamid_contexto = req.body.entry[0].changes[0].value.messages[0].context.id
+    //const timestamp = req.body.entry[0].changes[0].value.messages[0].timestamp;
+    //console.log("Datos que llegan al backend desde el gateway: ", { from, reply, wamid, timestamp })
+    //await cambiarEstadoCita(wamid_contexto, reply)
+
     //Aca debo colocar la logica en caso de que lo que envie el webhook sea un status
     if (req.body.entry[0].changes[0].value.statuses) {
       console.log("Es un status lo que llega al backend");
+      console.log("Status recibido en el controller: ", req.body.entry[0].changes[0].value.statuses[0].status);
+      console.log("Wamid del mensaje cuyo status se esta recibiendo: ", req.body.entry[0].changes[0].value.statuses[0].id);
+      console.log("Datos completos del status recibido: ", req.body.entry[0].changes[0].value);
+      const wamid_enviado = req.body.entry[0].changes[0].value.statuses[0].id;
+      const estado = req.body.entry[0].changes[0].value.statuses[0].status;
+      console.log("Datos para cambiar estado del mensaje en la DB: ", { wamid_enviado, estado });
+      await cambiarEstadoMensaje(wamid_enviado, estado)
     }
     
     
@@ -38,6 +46,9 @@ export async function ingestEvent(req, res) {
     //await service.processInboundEvent(req.body);
     if(req.body.entry[0].changes[0].value.messages){
       console.log("Es una respuesta lo que llega al backend");
+      const wamid_contexto = req.body.entry[0].changes[0].value.messages[0].context.id
+      const reply = req.body.entry[0].changes[0].value.messages[0].button.payload.toLowerCase();
+      await cambiarEstadoCita(wamid_contexto, reply)
     }
 
     

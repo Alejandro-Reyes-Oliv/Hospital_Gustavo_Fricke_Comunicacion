@@ -173,7 +173,29 @@ export async function cambiarEstadoCita(wamid_contexto, respuesta){
         
         }
     }catch(error){
-        console.error('Error al cambiar el estado de la cita: ', error);
+        console.error('Error al cambiar el estado de la cita (confirmada, cancelada): ', error);
+    }
+}
+
+//----------------------------------------Cambio de estado de mensaje-------------------------------------------
+//Funcion que cambia el estado del mensaje en la DB de mensajes segun el estado recibido por el webhook
+//Entradas: wamid_enviado: ID del mensaje enviado (es decir, al presionar el boton de Enviar bot), estado: 'sent', 'delivered', 'read' (son los estados que devuelve directamente el webhook)
+//Salida: Ninguna
+export async function cambiarEstadoMensaje(wamid_enviado, estado){
+    try{
+        if (wamid_enviado){
+            const idCita = await buscarCitaPorWamid(wamid_enviado);
+            const estadoMapeado = mapearEstado(estado); //Mapear el estado del mensaje a español
+            
+            await prisma.cita.update({
+                where: {id : idCita.id, paciente_rut: wamid_enviado }, //Buscar la cita por ID y por el wamid del mensaje enviado
+                data: { estado: estadoMapeado }
+            });
+        }
+        
+
+    }catch(error){
+        console.error('Error al cambiar el estado del mensaje (enviado, recivido, leido): ', error);
     }
 }
 
