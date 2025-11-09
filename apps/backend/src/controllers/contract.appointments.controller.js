@@ -127,6 +127,8 @@ export const AppointmentsContractController = {
 
       //Separacion de responsabilidades: El controller llama al service para obtener los datos y luego llama a la template para enviar el mensaje
       console.log('Datos para enviar confirmacion:', datosCitas)
+      //To Do: Hacer el arbol de decisiones para enviar diferentes tipos de plantillas segun el estado de la cita (Confirmada, Cancelada, Recordatorio, etc)
+      //- - - - - - - - - - - - - - - - - - - - - - - Envio de mensaje de confirmacion de cita - - - - - - - - - - - - - - - - - - - 
       datosCitas.forEach(async cita => {  //Aca se itera por cada cita en el array de citas para enviar el mensaje individualmente
             const response = await fetch(`${GRAPH_BASE}/messages`, {
             method: "POST",
@@ -134,13 +136,13 @@ export const AppointmentsContractController = {
               "Authorization": `Bearer ${WSP_TOKEN}`,
               "Content-Type": "application/json"
             },
-            body: rellenadoDatos(cita.paciente_nombre, cita.especialidad_snap, cita.fecha_hora[0], cita.fecha_hora[1], cita.paciente_telefono)
+            body: rellenadoDatos(cita.paciente_nombre, cita.fecha_hora[0], cita.fecha_hora[1], cita.paciente_telefono)
             
         
             });
           
             const data = await response.json();
-            //console.log("Respuesta de Meta: al enviar plantilla", data);
+            console.log("Respuesta de Meta: al enviar plantilla", data);
             //Con la data se puede guardar el ID del mensaje enviado en la base de datos de las citas para asociar el id y el mensaje
             const wamid_envio = data.messages[0].id;
             const idCita = cita.id; //Aca se obtiene la id de la cita actual en la iteracion
