@@ -74,14 +74,14 @@ export function mapCitaApiToDTO(x = {}) {
   // Acepta variantes de nombres que podrían venir del backend/mocks/LS
   const estadoSrc = x.estadoCita ?? x.estado ?? x.status ?? STATUS.PENDIENTE;
   const estado = canonicalStatus(estadoSrc);
-
+  
   const fechaISO = toISO(
     x.fechaCita ??
       x.fecha ??
       // fallback legacy: fecha + hora separadas
       (x.hora && x.fecha ? `${x.fecha}T${String(x.hora).padStart(5, '0')}` : undefined)
   );
-
+  console.log("Fecha ISO en dto.js: ", fechaISO);
   return {
     id: String(x.id ?? ''),
     nombrePaciente: String(x.nombrePaciente ?? x.paciente ?? ''),

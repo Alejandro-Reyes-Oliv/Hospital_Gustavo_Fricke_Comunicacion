@@ -1,7 +1,9 @@
 // src/services/citas.p2.js
 
 import api from '../lib/apiClient.js';
+console.log('API Base URL en citas.p2.js:', api.baseURL);
 api.baseURL ||= 'http://localhost:8080';
+
 import { mapCitaApiToDTO } from '../lib/dto.js';
 import { STATUS } from '../lib/constants.js';
 import * as local from './citas.js';
@@ -13,6 +15,7 @@ export async function listCitas(params = {}) {
   const baseURL = import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:8080';
 
   const query = new URLSearchParams();
+  console.log("Params en citas.p2.js: ", query);
   const q = normalizeQuery(params);
 
   if (q.search)   query.set('search', q.search);

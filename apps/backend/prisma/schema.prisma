@@ -22,6 +22,9 @@ enum EstadoCita {
   pendiente
   confirmada
   cancelada
+  enviado
+  recibido
+  leido
 }
 
 model Cita {
