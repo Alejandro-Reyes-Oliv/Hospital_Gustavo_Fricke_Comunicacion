@@ -11,12 +11,14 @@ export function mapDoctorToDTO(row = {}) {
 }
 
 export function mapCitaToDTO(row = {}) {
+
   return {
     id: String(row.id ?? ""),
     nombrePaciente: row.paciente_nombre ?? row.nombrePaciente ?? "",
     rut: row.paciente_rut ?? row.rut ?? undefined,
     telefono: row.paciente_telefono ?? row.telefono ?? undefined,
-    fechaCita: toISO(row.fecha_hora ?? row.fechaCita, false) ?? "",
+    fechaCita: row.fecha_hora ?? row.fechaCita ?? "",
+    //fechaCita: toISO(row.fecha_hora ?? row.fechaCita, false) ?? "",
     medicoId: String(row.doctorId ?? row.medicoId ?? ""),
     nombreMedico: row.doctor_nombre_snap ?? row.nombreMedico ?? "",
     especialidadMedico: row.especialidad_snap ?? row.especialidadMedico ?? "",

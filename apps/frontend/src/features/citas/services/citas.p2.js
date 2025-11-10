@@ -60,7 +60,7 @@ export async function addAppointment(newItem) {
   const payload = {
     nombrePaciente: newItem.nombrePaciente ?? newItem.paciente,
     telefono,
-    fechaCita: newItem.fechaCita,
+    fechaCita: new Date(newItem.fechaCita),
     medicoId: newItem.medicoId,
     estadoCita: normalizeStatus(newItem.estadoCita),
     origin: "web",

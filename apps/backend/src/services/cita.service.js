@@ -51,10 +51,13 @@ export const CitaService = {
 
     // 3) crear cita con snapshots
     const estado = (data.estado ?? "pendiente").toLowerCase();
+    console.log("datos entrantes a la base de datos con los datos de la cita", data.fecha_hora)
+    const fecha_hora_array = data.fecha_hora.split('T');
     const cita = await prisma.cita.create({
+    
       data: {
         doctorId: data.doctorId,
-        fecha_hora: new Date(data.fecha_hora),
+        fecha_hora: fecha_hora_array[0] + ' ' + fecha_hora_array[1],
         estado,
         paciente_nombre: data.paciente_nombre,
         paciente_telefono: data.paciente_telefono,

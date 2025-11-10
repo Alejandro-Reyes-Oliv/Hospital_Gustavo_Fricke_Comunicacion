@@ -23,6 +23,8 @@ export const AppointmentsContractController = {
   list: async (req, res, next) => {
     try {
       const { search, estado, medicoId, from, to, page = 1, pageSize = 1000, sort = "fechaCita:asc" } = req.query;
+      
+      
       const where = {
         AND: [
           from ? { fecha_hora: { gte: new Date(from) } } : {},
@@ -52,6 +54,7 @@ export const AppointmentsContractController = {
   },
 
   create: async (req, res, next) => {
+    //console.log("Hora antes de enviarlo a la base de datos: ", req.body.fechaCita);
     try {
       const { nombrePaciente, rut, telefono, fechaCita, medicoId, estadoCita } = req.validated;
       const createdRow = await CitaService.crear({
@@ -126,8 +129,9 @@ export const AppointmentsContractController = {
       //await sendConfirmation(datosCitas);
 
       //Separacion de responsabilidades: El controller llama al service para obtener los datos y luego llama a la template para enviar el mensaje
-      console.log('Datos para enviar confirmacion:', datosCitas)
+      //console.log('Datos para enviar confirmacion:', datosCitas)
       //To Do: Hacer el arbol de decisiones para enviar diferentes tipos de plantillas segun el estado de la cita (Confirmada, Cancelada, Recordatorio, etc)
+      
       //- - - - - - - - - - - - - - - - - - - - - - - Envio de mensaje de confirmacion de cita - - - - - - - - - - - - - - - - - - - 
       datosCitas.forEach(async cita => {  //Aca se itera por cada cita en el array de citas para enviar el mensaje individualmente
             const response = await fetch(`${GRAPH_BASE}/messages`, {

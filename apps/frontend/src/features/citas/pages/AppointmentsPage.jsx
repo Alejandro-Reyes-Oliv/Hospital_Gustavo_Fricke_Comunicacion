@@ -235,7 +235,7 @@ export default function AppointmentsPage() {
     const nombrePaciente = (get("nombrePaciente") || "").trim();
     const medicoId = (get("medicoId") || "").trim();
     const fechaRaw = get("fechaCita");
-    const fechaCita = fechaRaw ? new Date(fechaRaw).toISOString() : "";
+    const fechaCita = fechaRaw; //? new Date(fechaRaw).toISOString() : "";
 
     const telRaw = get("telefono");
     const telefonoDigits = sanitizePhone(telRaw);

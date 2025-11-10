@@ -50,6 +50,7 @@ export const CitaCreateDTO = z.object({
   medicoId: z.string().min(1),
   estadoCita: z.enum(["pendiente", "confirmada", "cancelada"]).optional(),
 });
+//console.log("las weas que llega en CitaCreateDTO: ", CitaCreateDTO);
 export const CitaUpdateDTO = CitaCreateDTO.partial();
 
 export const CitaListQuery = z.object({

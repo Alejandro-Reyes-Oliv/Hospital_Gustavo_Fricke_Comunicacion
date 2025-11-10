@@ -1,98 +1,69 @@
-// src/lib/dto.js
-// "Contrato" de datos visible por el front: define DTOs y mapeadores.
-// No acopla al modelo de Prisma. Úsalo entre servicios y UI.
-import { STATUS } from './constants.js';
-import { toISO } from './date.js';
-// ---------- Doctor ----------
-/**
- * @typedef {Object} DoctorDTO
- * @property {string} id
- * @property {string} nombre
- * @property {string} especialidad
- * @property {string=} telefono
- * @property {boolean} activo
- * @property {string=} createdAt // ISO
- * @property {string=} updatedAt // ISO
- */
+// src/shared/lib/dto.js
+// ⇢ Mini helper local (sin archivos extra)
+const pad = (n) => String(n).padStart(2, "0");
+const isoToLocalInput = (iso) => {
+  if (!iso) return "";
+  const d = new Date(iso);              // Date lo trae a TU zona local
+  console.log("Fecha convertida a zona local: ", d);
+  const y = d.getFullYear();
+  const m = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const h = pad(d.getHours());
+  const min = pad(d.getMinutes());
+  return `${y}-${m}-${day}T${h}:${min}`; // formato <input datetime-local>
+};
 
-/**
- * Map backend → DoctorDTO (tolerante a campos extra/case diferente)
- */
-export function mapDoctorApiToDTO(x = {}) {
+// Normaliza una cita del API a un DTO estable para la UI (sin mover la hora)
+export function mapCitaApiToDTO(it = {}) {
+  const id =
+    it.id ?? it._id ?? it.uuid ?? it.codigo ?? null;
+
+  const nombrePaciente =
+    it.nombrePaciente ?? it.paciente_nombre ?? it.paciente ?? "";
+
+  const telefono = String(it.telefono ?? it.paciente_telefono ?? "")
+    .replace(/\D/g, "");
+
+  const medicoId =
+    it.medicoId ?? it.medico_id ?? it.doctor_id ?? null;
+
+  const especialidad =
+    it.especialidad ?? it.especialidad_snap ?? "";
+
+  const estadoRaw =
+    String(it.estadoCita ?? it.estado ?? "pendiente").toLowerCase();
+  const estadoCita = normalizaEstado(estadoRaw);
+
+  // --- HORA (arreglo simple) ---
+  const src = it.fechaCita ?? it.fecha_cita ?? it.fecha ?? null;
+  // si viene como ISO con zona (…Z o +HH:MM), conviértelo a formato local para el input
+  const isIsoWithTz = typeof src === "string" && /T.+(Z|[+-]\d\d:\d\d)$/.test(src);
+  const fechaCita = isIsoWithTz ? isoToLocalInput(src) : src;
+
+  const fecha_hora = Array.isArray(it.fecha_hora) ? it.fecha_hora : undefined;
+
   return {
-    id: String(x.id ?? ''),
-    nombre: String(x.nombre ?? x.name ?? ''),
-    especialidad: String(x.especialidad ?? x.specialty ?? ''),
-    telefono: x.telefono ?? x.phone ?? undefined,
-    activo: Boolean(x.activo ?? x.active ?? true),
-    createdAt: x.createdAt ?? x.created_at ?? undefined,
-    updatedAt: x.updatedAt ?? x.updated_at ?? undefined,
+    id,
+    nombrePaciente,
+    telefono,
+    medicoId,
+    especialidad,
+    estadoCita,
+    fechaCita,   // <- úsalo directo en <input type="datetime-local">
+    fecha_hora,  // <- opcional para mostrar "09 de noviembre …"
+    ...it,
   };
 }
 
-// ---------- Cita ----------
-/**
- * @typedef {Object} CitaDTO
- * @property {string} id
- * @property {string} nombrePaciente
- * @property {string=} rut            // ➜ no usamos en UI; lo dejamos undefined
- * @property {string=} telefono
- * @property {string} fechaCita       // ISO 8601 full
- * @property {string} medicoId
- * @property {string} nombreMedico
- * @property {string} especialidadMedico
- * @property {'pendiente'|'confirmada'|'cancelada'|'reprogramada'|'enviado'|'recibido'|'leido'} estadoCita
- * @property {string=} createdAt // ISO
- * @property {string=} updatedAt // ISO
- */
-
-
-
-// Normaliza estados (acepta femenino y acentos) → canónicos del front
-function canonicalStatus(s) {
-  const raw = String(s || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '');
-
-  if (raw.startsWith('confirm')) return STATUS.CONFIRMADA;
-  if (raw.startsWith('cancel'))  return STATUS.CANCELADA;
-  if (raw.startsWith('reprogr')) return STATUS.REPROGRAMADA;
-  if (raw.startsWith('envi'))    return STATUS.ENVIADO;   // enviado/enviada
-  if (raw.startsWith('recib'))   return STATUS.RECIBIDO;  // recibido/recibida
-  if (raw.startsWith('leid'))    return STATUS.LEIDO;     // leido/leída/leida
-  if (raw.startsWith('pend'))    return STATUS.PENDIENTE;
-
-  if (['enviado','enviada'].includes(raw))   return STATUS.ENVIADO;
-  if (['recibido','recibida'].includes(raw)) return STATUS.RECIBIDO;
-  if (['leido','leida'].includes(raw))       return STATUS.LEIDO;
-
-  return STATUS.PENDIENTE;
-}
-
-export function mapCitaApiToDTO(x = {}) {
-  // Acepta variantes de nombres que podrían venir del backend/mocks/LS
-  const estadoSrc = x.estadoCita ?? x.estado ?? x.status ?? STATUS.PENDIENTE;
-  const estado = canonicalStatus(estadoSrc);
-  
-  const fechaISO = toISO(
-    x.fechaCita ??
-      x.fecha ??
-      // fallback legacy: fecha + hora separadas
-      (x.hora && x.fecha ? `${x.fecha}T${String(x.hora).padStart(5, '0')}` : undefined)
-  );
-  console.log("Fecha ISO en dto.js: ", fechaISO);
-  return {
-    id: String(x.id ?? ''),
-    nombrePaciente: String(x.nombrePaciente ?? x.paciente ?? ''),
-    rut: undefined, // 👈 no usamos RUT en el front ni lo pedimos al backend
-    telefono: x.telefono ?? x.phone ?? undefined,
-    fechaCita: fechaISO || '',
-    medicoId: String(x.medicoId ?? x.idMedico ?? ''),
-    nombreMedico: String(x.nombreMedico ?? x.medico ?? ''),
-    especialidadMedico: String(x.especialidadMedico ?? x.especialidad ?? ''),
-    estadoCita: estado, // 👈 preserva enviado/recibido/leido/reprogramada/...
-    createdAt: x.createdAt ?? x.created_at ?? undefined,
-    updatedAt: x.updatedAt ?? x.updated_at ?? undefined,
-  };
+function normalizaEstado(s) {
+  if (s.startsWith("confirm")) return "confirmada";
+  if (s.startsWith("cancel"))  return "cancelada";
+  if (s.startsWith("reprogr")) return "reprogramada";
+  if (s.startsWith("envi"))    return "enviado";
+  if (s.startsWith("recib"))   return "recibido";
+  if (s.startsWith("leid"))    return "leido";
+  if (s === "enviada")         return "enviado";
+  if (s === "recibida")        return "recibido";
+  if (s === "leida")           return "leido";
+  return "pendiente";
 }
