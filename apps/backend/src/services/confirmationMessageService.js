@@ -1,6 +1,6 @@
 //Aqui se vera toda la logica relacionada con el envio de mensajes de confirmacion a traves del boton
 import {prisma} from '../config/prisma.js';
-
+import { styleText } from 'node:util';
 
 //----------------------------------------Obtencion de datos de cita y llenado de mensaje-------------------------------------------
 //Funcion que obtiene los datos de la cita a traves del id de la cita
@@ -28,23 +28,26 @@ export async function obtenerDatosCita(ids = []){
                     id:true
                 }
         })
+        //- - - - - - - - - - - - - - - - - - - - -  - - - - - - Mapeos y formateos de fecha y hora - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         //Limpieza de la fecha y hora para que quede en formato legible
-        datosCitas.forEach(fecha => { //Aca se hace el formateo de cada fecha obtenida, ya que en la base de datos esta contenida en un formato poco legible e.j(2025-09-23T00:01:00.000Z)
-            fecha.fecha_hora = fecha.fecha_hora.toISOString().slice(0, 19).replace('T', ' ').split(' '); //El resultado queda en un array con [fecha, hora] e.j (['2025-09-23', '00:01:00'])
-        }); //Aca retorna un array que contiene [fecha] [hora]
+        //Entrada: 2025-11-11T02:00:00.000Z
+        //Salida: ['2025-Nov-11', '02:00']
+        datosCitas.forEach(fecha => { //Aca se hace el formateo de cada fecha obtenida, ya que en la base de datos esta contenida en un formato poco legible e.j(2025-11-09 00:00:00-03)
+            fecha.fecha_hora = fecha.fecha_hora.toString().split(" "); //Al convertir a string y hacer split por espacios, queda un array con ['Mon', 'Nov', '10', '2025', '02:00:00', 'GMT-0300', '(hora', 'de','verano', 'de', 'Chile)']
+            fecha.fecha_hora = fecha.fecha_hora[3] + "-" + fecha.fecha_hora[1] + "-" + fecha.fecha_hora[2] + " " + fecha.fecha_hora[4].slice(0,5); //Aca se reordena la fecha a formato 'AAAA-MM-DD HH:MM' e.j (2025-11-11 02:00)
+            fecha.fecha_hora = fecha.fecha_hora.split(" "); //Aca retorna un array que contiene [fecha] [hora] e.j (['2025-11-11', '02:00'] 
+        }); 
+        
         datosCitas.forEach(cita => {
-            cita.fecha_hora[0] = mapearFecha(cita.fecha_hora[0]); //Mapear la fecha a formato legible e.j (23 de septiembre de 2025)
+            cita.fecha_hora[0] = mapearFecha(cita.fecha_hora[0]); //Mapear la fecha a formato legible e.j (11 de noviembre de 2025)
             cita.fecha_hora[1] = cita.fecha_hora[1].slice(0,5); //Dejar solo la hora en formato HH:MM e.j (00:01)
+            //console.log("Fecha mapeada: ", cita.fecha_hora[0], " Hora mapeada: ", cita.fecha_hora[1]);
         });
-
-        /* ........................................Solo Ejemplo.......................................
-        //Misma funcion pero con map
-        datosCitas.map(cita =>{
-            cita.fecha_hora = cita.fecha_hora.toISOString().slice(0, 19).replace('T', ' ').split(' ');
-        })
-        */
-
-        //Formateo del numero telefonico
+        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - Formateo de numero telefonico - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        //Formateo del numero telefonico para que sea compatible con el API de WhatsApp Business (Debe incluir codigo de pais, en este caso 56 para Chile)
+        //Entrada: numero telefonico en formato string e.j '912345678' o '56912345678'
+        //Salida: numero telefonico en formato string e.j '56912345678'
+ 
         datosCitas.forEach(numero => {
             if (numero.paciente_telefono.length == 10 || numero.paciente_telefono.length >= 13 || numero.paciente_telefono.length <= 8) {
                 console.warn(`El numero telefonico ${numero.paciente_telefono} tiene una longitud invalida.`);
@@ -61,6 +64,7 @@ export async function obtenerDatosCita(ids = []){
         });
         
         return datosCitas;
+
     }catch (error){
         console.error('Error al obtener los datos de la cita: ', error);
     }
@@ -73,18 +77,18 @@ export async function obtenerDatosCita(ids = []){
 //Salida: "DD de mes de AAAA"
 function mapearFecha(fechaStr) {
     const meses = {
-        "01": "enero",
-        "02": "febrero",
-        "03": "marzo",
-        "04": "abril",
-        "05": "mayo",
-        "06": "junio",
-        "07": "julio",
-        "08": "agosto",
-        "09": "septiembre",
-        "10": "octubre",
-        "11": "noviembre",
-        "12": "diciembre"
+        "Jan": "enero",
+        "Feb": "febrero",
+        "Mar": "marzo",
+        "Apr": "abril",
+        "May": "mayo",
+        "Jun": "junio",
+        "Jul": "julio",
+        "Aug": "agosto",
+        "Sep": "septiembre",
+        "Oct": "octubre",
+        "Nov": "noviembre",
+        "Dec": "diciembre"
     }
     const [year, month, day] = fechaStr.split('-');
     return `${day} de ${meses[month]} de ${year}`;

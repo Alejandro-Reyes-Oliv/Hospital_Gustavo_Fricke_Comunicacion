@@ -31,13 +31,13 @@ export async function ingestEvent(req, res) {
 
     //Aca debo colocar la logica en caso de que lo que envie el webhook sea un status
     if (req.body.entry[0].changes[0].value.statuses) {
-      console.log("Es un status lo que llega al backend");
-      console.log("Status recibido en el controller: ", req.body.entry[0].changes[0].value.statuses[0].status);
-      console.log("Wamid del mensaje cuyo status se esta recibiendo: ", req.body.entry[0].changes[0].value.statuses[0].id);
-      console.log("Datos completos del status recibido: ", req.body.entry[0].changes[0].value);
+      //console.log("Es un status lo que llega al backend");
+      //console.log("Status recibido en el controller: ", req.body.entry[0].changes[0].value.statuses[0].status);
+      //console.log("Wamid del mensaje cuyo status se esta recibiendo: ", req.body.entry[0].changes[0].value.statuses[0].id);
+      //console.log("Datos completos del status recibido: ", req.body.entry[0].changes[0].value);
       const wamid_enviado = req.body.entry[0].changes[0].value.statuses[0].id;
       const estado = req.body.entry[0].changes[0].value.statuses[0].status;
-      console.log("Datos para cambiar estado del mensaje en la DB: ", { wamid_enviado, estado });
+      //console.log("Datos para cambiar estado del mensaje en la DB: ", { wamid_enviado, estado });
       await cambiarEstadoMensaje(wamid_enviado, estado)
     }
     

@@ -8,7 +8,9 @@ export function toISO(dateLike) {
       return new Date(dateLike).toISOString()
     }
     const d = new Date(dateLike)
+    console.log("Fecha ISO generada: ", d.toISOString());
     return d.toISOString()
+    
   } catch {
     return null
   }
