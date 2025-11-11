@@ -10,6 +10,8 @@ import { obtenerDatosCita } from "../services/confirmationMessageService.js";
 //import { sendConfirmation } from "../../../bot-gateway/templates/confirmTemplate.js";
 import { rellenadoDatos } from "../../../bot-gateway/templates/confirmTemplate.js";
 import { asociarMensajeCita } from "../services/confirmationMessageService.js";
+import { Prisma } from "@prisma/client";
+
 
 
 const normalizeSort = (sort) => {
@@ -19,9 +21,11 @@ const normalizeSort = (sort) => {
   return { [col]: dir === "desc" ? "desc" : "asc" };
 };
 
+//Listar citas con filtros avanzados (las pasadas al final)
 export const AppointmentsContractController = {
   list: async (req, res, next) => {
     try {
+<<<<<<< Updated upstream
       const { search, estado, medicoId, from, to, page = 1, pageSize = 1000, sort = "fechaCita:asc" } = req.query;
       
       
@@ -48,6 +52,76 @@ export const AppointmentsContractController = {
         prisma.cita.count({ where }),
       ]);
       return ok(res, pageOut({ data: rows.map(mapCitaToDTO), page: Number(page), pageSize: Number(pageSize), total }));
+=======
+      // params actuales que ya recibes
+      const {
+        search, estado, medicoId, from, to,
+        page = 1, pageSize = 1000,
+      } = req.query;
+
+      const take = Number(pageSize);
+      const skip = (Number(page) - 1) * take;
+
+      // WHERE dinámico
+      const conds = [Prisma.sql`1=1`];
+
+      if (from) {
+        conds.push(Prisma.sql`"fecha_hora" >= ${new Date(from)}`);
+      }
+      if (to) {
+        conds.push(Prisma.sql`"fecha_hora" <= ${new Date(to)}`);
+      }
+      if (medicoId) {
+        conds.push(Prisma.sql`"doctorId" = ${Number(medicoId)}`);
+      }
+      if (estado) {
+        conds.push(Prisma.sql`"estado" = ${estado}`);
+      }
+      if (search) {
+        const like = `%${search}%`;
+        conds.push(
+          Prisma.sql`(
+            "paciente_nombre" ILIKE ${like} OR
+            "paciente_rut" ILIKE ${like} OR
+            "paciente_telefono" ILIKE ${like}
+          )`
+        );
+      }
+
+      const whereSql = Prisma.sql`WHERE ${Prisma.join(conds, ' AND ')}`;
+
+      // 1) filas ordenadas: futuras primero, pasadas al final; luego por fecha asc
+      const rows = await prisma.$queryRaw(Prisma.sql`
+        SELECT
+          "id", "doctorId", "fecha_hora", "estado",
+          "paciente_nombre", "paciente_rut", "paciente_telefono",
+          "doctor_nombre_snap", "especialidad_snap",
+          "creadoEn", "actualizadoEn"
+        FROM "Cita"
+        ${whereSql}
+        ORDER BY ("fecha_hora" < NOW()) ASC, "fecha_hora" ASC
+        LIMIT ${take} OFFSET ${skip};
+      `);
+
+      // 2) total para paginación
+      const countRes = await prisma.$queryRaw(Prisma.sql`
+        SELECT COUNT(*)::int AS count
+        FROM "Cita"
+        ${whereSql};
+      `);
+      const total = Array.isArray(countRes) ? countRes[0]?.count ?? 0 : 0;
+
+      // Usa tu mapper/HTTP helper actual
+      return ok(
+        res,
+        pageOut({
+          data: rows.map(mapCitaToDTO),
+          page: Number(page),
+          pageSize: take,
+          total,
+        })
+      );
+>>>>>>> Stashed changes
     } catch (e) {
       next(e);
     }
