@@ -10,7 +10,7 @@ console.log('TEMPLATE EN informationTemplate.js:', TEMPLATE);
 //console.log('TOKEN EN informationTemplate.js:', TOKEN);
 const fechaCita ='25 de Diciembre de 2025'
 const horaCita ='15:30'
-const numeroPaciente ='56973882698'
+const numeroPaciente ='56955333737'
 export function rellenadoDatosInformacion (fechaCita, horaCita, numeroPaciente) {
     
     const payload = {
