@@ -1,8 +1,9 @@
 //Aqui se vera toda la logica relacionada con el envio de mensajes de confirmacion a traves del boton
+import { rellenadoDatosPacienteCancela } from '../../../bot-gateway/templates/pacienteCancelaTemplate.js';
 import {prisma} from '../config/prisma.js';
 import { styleText } from 'node:util';
-
-//----------------------------------------Obtencion de datos de cita y llenado de mensaje-------------------------------------------
+process.loadEnvFile('../../../.env');
+//----------------------------------------Obtencion de datos de cita-------------------------------------------
 //Funcion que obtiene los datos de la cita a traves del id de la cita
 //Entradas: ids = [id1, id2, id3...]  (Array de id's de las citas)
 //Salida: Array con el telefono, nombre del paciente, especialidad, fecha de la cita y la id para luego asociarlo al mensaje
@@ -96,7 +97,7 @@ function mapearFecha(fechaStr) {
 
 //----------------------------------------Mapeado de respuestas de cita--------------------------------------------
 //Funcion que mapea las respuestas del usuario desde el payload del boton al estado de la cita
-//Entrada: respuesta = 'confirmar' o 'cancelar'
+//Entrada: respuesta = 'confirmar' o 'cancelar' / 'no asistiré' o 'asistiré'
 //Salida: 'confirmada' o 'cancelada'
 function mapearRepuesta(respuesta){
     const respuestaMapeada = {
@@ -120,6 +121,20 @@ function mapearEstado(estado){
     return estadoMapeado[estado];
     
 }
+
+//----------------------------------------Mapeado de plantillas-------------------------------------------------------
+//Funcion que mapea los nombres de las plantillas a enviar 
+//Entrada: nombre de la plantilla de ejemplo
+//Salida: nombre real de la plantilla a enviar
+function mapearPlantilla(nombrePlantilla){
+    const plantillaMapeada = {
+        'confirmacion_cita' : process.env.CONFIRM_TEMPLATE_END,
+        'informacion_cita' : process.env.CONFIRMADA_TEMPLATE_END,
+        'cancelada_cita_paciente' : process.env.CANCELADA_TEMPLATE_END
+    }
+    return plantillaMapeada[nombrePlantilla];
+}
+
 
 //----------------------------------------Guardado de id de mensaje enviado en cita-------------------------------------------
 //Funcion que guarda el ID del mensaje enviado en la DB de citas para asociar el mensaje con la cita
@@ -170,10 +185,18 @@ export async function cambiarEstadoCita(wamid_contexto, respuesta){
             console.log("id del mensaje contexto: ", wamid_contexto)
             console.log("id de la cita obtenida: ", idCita.id);
             
-            await prisma.cita.update({
-                where: {id : idCita.id, paciente_rut: wamid_contexto }, //Buscar la cita por ID y por el wamid del mensaje al que se responde
-                data: { estado: respuestaMapeada }
-            });
+            const estadoActualCita = await obtenerEstadoCita(idCita.id); //Obtener el estado actual de la cita para evitar sobreescribir estados importantes ya que el flow es pendiente -> confirmada ó cancelada, si se recibe una no puede cambiarse a la otra
+            console.log("Estado actual de la cita: ", estadoActualCita);
+            if (estadoActualCita != 'confirmada' && estadoActualCita != 'cancelada'){ //En este caso es cuando la cita aun no ha sido confirmada ni cancelada, se puede cambiar el estado
+                await prisma.cita.update({
+                    where: {id : idCita.id, paciente_rut: wamid_contexto }, //Buscar la cita por ID y por el wamid del mensaje al que se responde
+                    data: { estado: respuestaMapeada }
+                });
+            }else{
+                console.log("El estado de la cita ya es definitivo, no se puede cambiar");
+                //En esta parte incluso se podria enviar un mensaje al usuario indicando que su cita ya fue confirmada o cancelada y no se puede cambiar
+            }
+            
         
         }
     }catch(error){
@@ -182,24 +205,123 @@ export async function cambiarEstadoCita(wamid_contexto, respuesta){
 }
 
 //----------------------------------------Cambio de estado de mensaje-------------------------------------------
-//Funcion que cambia el estado del mensaje en la DB de mensajes segun el estado recibido por el webhook
+//Funcion que cambia el estado del mensaje en la DB de mensajes segun el estado recibido por el webhook )
 //Entradas: wamid_enviado: ID del mensaje enviado (es decir, al presionar el boton de Enviar bot), estado: 'sent', 'delivered', 'read' (son los estados que devuelve directamente el webhook)
 //Salida: Ninguna
+//Comentario: se puede hacer de mejor manera, pero por ahora funciona
 export async function cambiarEstadoMensaje(wamid_enviado, estado){
     try{
         if (wamid_enviado){
             const idCita = await buscarCitaPorWamid(wamid_enviado);
             const estadoMapeado = mapearEstado(estado); //Mapear el estado del mensaje a español
-            
-            await prisma.cita.update({
-                where: {id : idCita.id, paciente_rut: wamid_enviado }, //Buscar la cita por ID y por el wamid del mensaje enviado
-                data: { estado: estadoMapeado }
-            });
+            const estadoActualCita = await obtenerEstadoCita(idCita.id); //Obtener el estado actual de la cita para evitar sobreescribir estados importantes ni anteriores, ya que el flow es enviado -> recibido -> leido
+            if (estadoActualCita === 'pendiente'){ //En este caso es cuando el mensaje aun no se envia, al hacerlo puede cambiar a cualquiera de los estados
+                await prisma.cita.update({
+                    where: {id : idCita.id, paciente_rut: wamid_enviado }, 
+                    data: { estado: estadoMapeado }
+                });
+            }else if(estadoActualCita === 'enviado' && estadoMapeado === 'recibido'){
+                await prisma.cita.update({
+                    where: {id : idCita.id, paciente_rut: wamid_enviado }, //Buscar la cita por ID y por el wamid del mensaje enviado
+                    data: { estado: estadoMapeado }
+                });
+            }else if (estadoActualCita === 'recibido' && estadoMapeado === 'leido'){
+                //se puede
+                await prisma.cita.update({
+                    where: {id : idCita.id, paciente_rut: wamid_enviado }, //Buscar la cita por ID y por el wamid del mensaje enviado
+                    data: { estado: estadoMapeado }
+                });
+            }else if (estadoActualCita === 'recibido' && estadoMapeado === 'enviado'){
+                console.log("El estado que esta entrando es anterior al que ya se ingreso en la base de datos"); //No hacer nada, ya que el estado actual es mas avanzado que el estado recibido
+            }else if (estadoActualCita === 'leido' && (estadoMapeado === 'recibido' || estadoMapeado === 'enviado')){
+                console.log("El estado que esta entrando es anterior al que ya se ingreso en la base de datos"); //No hacer nada, ya que el estado actual es mas avanzado que el estado recibido
+            } 
         }
         
 
     }catch(error){
-        console.error('Error al cambiar el estado del mensaje (enviado, recivido, leido): ', error);
+        console.error('Error al cambiar el estado del mensaje (enviado, recibido, leido): ', error);
     }
 }
 
+//----------------------------------------Obtencion del estado de cita-----------------------------------------
+//Funcion que obtiene el estado de la cita a traves del ID de la cita
+//Entradas: idCita: ID de la cita
+//Salida: estado de la cita e.j 'pendiente', 'confirmada', 'cancelada', 'enviado', 'recibido', 'leido'
+async function obtenerEstadoCita(idCita){
+    try{
+        const cita = await prisma.cita.findUnique({
+            where: {id: idCita},
+            select: {estado: true}
+        });
+        return cita.estado;
+    }catch(error){
+        console.error('Error al obtener el estado de la cita: ', error);
+        return null;
+    }
+}
+
+//-----------------------------------------Obtencion de wamid de la cita----------------------------------
+//Funcion que obtiene el wamid de la cita a traves del ID de la cita
+//Entradas: idCita: ID de la cita
+//Salida: wamid de la cita (ID del mensaje enviado)
+async function obtenerWamidCita(idCita){
+    try{
+        const cita = await prisma.cita.findUnique({
+            where: {id: idCita},
+            select: {paciente_rut: true} //Actualmente el wamid se esta guardando en paciente_rut, se debe cambiar en el futuro ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
+        })
+    }catch(error){
+        console.error('Error al obtener el wamid de la cita: ', error);
+        return null;
+    }
+}
+//----------------------------------------Decision de envio de plantilla----------------------------------------
+//Funcion que decide que plantilla enviar segun el estado de la cita
+//Entradas: estadoCita: estado de la cita e.j 'pendiente', 'confirmada', 'cancelada', 'enviado', 'recibido', 'leido'
+//Salida: nombre de la plantilla a enviar e.j 'confirmacion_cita', 'recordatorio_cita', 'cita_confirmada', 'cita_cancelada'. Ojo son solo ejemplos, no son los nombres reales de las plantillas
+export async function decidirPlantillaEnvio(estadoCita, idCita){
+    //Caso en el que wamid no existe, quiere decir que no se ha enviado ningun mensaje aun
+    const wamid = await obtenerWamidCita(idCita);
+    const estadoActualCita = await obtenerEstadoCita(idCita);
+    if (!wamid){ //En caso de que no haya nada en el campo de wamid, es decir, no se ha enviado ningun mensaje aun
+        if (estadoCita === 'pendiente' && estadoActualCita != 'confirmada' && estadoActualCita != 'cancelada'){ //Se verifica si el estado de la cita es pendiente, ya que si es otra cosa no se deberia enviar nada (desde el front se puede agregar automaticamente los estados de confirmada y cancelada, en esos casos no se envian los mensajes de confirmacion, pq se asume que ya se confirmo o cancelo por otro medio)
+            return mapearPlantilla('confirmacion_cita');
+        }
+    }else if (wamid){ //Hay que agregar un paso mas, que seria que si existe un wamid, pero el estado se cambia internamente a confirmada o cancelada, no se deberian de enviar mensajes (Falta manejar el cancelado de cita por parte de funcionario aun)
+        //Para el momento en el que exista un manejo de la cancelacion de cita por parte del funcionario, se deberia agregar una condicion mas que verifique si el estado actual de la cita es por parte del paciente o del fucnionario, algo asi como canceladoPaciente o canceladoFuncionario, ya que se enviarian 2 plantillas diferentes segun el caso
+        if (estadoActualCita === 'confirmada'){
+            return mapearPlantilla('informacion_cita');
+            //To Do: Luego de enviar la plantilla con la informacion, se entra en el modo de recordatorios, que aun no esta implementado
+        }else if (estadoActualCita === 'cancelada'){
+            return mapearPlantilla('cancelada_cita_paciente');
+        }
+    }
+}
+
+//----------------------------------------Rellenado de plantillas-------------------------------------------
+//Funcion que rellena las plantillas con los datos de la cita segun plantilla a enviar
+//Entradas: nombrePlantilla: nombre de la plantilla a enviar, datosCita: objeto con los datos de la cita (telefono, nombre, especialidad, fecha y id)
+//Salida: objeto con los parametros rellenados para enviar a la API de WhatsApp Business
+/* 
+export function rellenarPlantilla(idCita){
+ const datosCita = obtenerDatosCita([idCita]); //Obtener los datos de la cita a traves del ID de la cita
+ const plantilla = decidirPlantillaEnvio(datosCita[0].estado, idCita); //Llama a la funcion que decide que plantilla enviar segun el estado de la cita
+
+    switch (plantilla){
+        case mapearPlantilla('confirmacion_cita'): 
+            console.log(styleText('bgGreen', `Rellenando plantilla de confirmacion: ${plantilla}`));
+            return rellenadoDatos(datosCita[0].paciente_nombre, datosCita[0].fecha_hora[0], datosCita[0].fecha_hora[1], datosCita[0].paciente_telefono); 
+        case mapearPlantilla('informacion_cita'):
+            console.log(styleText('bgBlue', `Rellenando plantilla de informacion: ${plantilla}`));
+            return rellenadoDatosInformacion(datosCita[0].fecha_hora[0], datosCita[0].fecha_hora[1], datosCita[0].paciente_telefono);
+        case mapearPlantilla('cancelada_cita_paciente'):
+            console.log(styleText('bgRed', `Rellenando plantilla de cancelacion por parte del paciente: ${plantilla}`));
+            return rellenadoDatosPacienteCancela(datosCita[0].paciente_telefono);
+        default:
+            console.warn('No se encontro una plantilla para enviar');
+            return null;
+    }
+
+}
+    */
