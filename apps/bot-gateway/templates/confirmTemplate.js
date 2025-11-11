@@ -4,6 +4,15 @@
 process.loadEnvFile('../../../.env');
 
 
+// import { fileURLToPath } from 'node:url';
+// import path from 'node:path';
+
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname  = path.dirname(__filename);
+
+// const envPath = path.resolve(__dirname, '../../../.env');
+// process.loadEnvFile(envPath);
+
 
 const TOKEN = process.env.WSP_TOKEN 
 const GRAPH_BASE = process.env.GRAPH_BASE 
