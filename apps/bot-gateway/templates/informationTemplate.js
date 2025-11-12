@@ -5,7 +5,7 @@ process.loadEnvFile('../../../.env');
 const TOKEN = process.env.WSP_TOKEN 
 const GRAPH_BASE = process.env.GRAPH_BASE 
 const TEMPLATE = process.env.CONFIRMADA_TEMPLATE_END
-console.log('TEMPLATE EN informationTemplate.js:', TEMPLATE);
+//console.log('TEMPLATE EN informationTemplate.js:', TEMPLATE);
 //console.log('GRAPH BASE EN informationTemplate.js:', GRAPH_BASE);
 //console.log('TOKEN EN informationTemplate.js:', TOKEN);
 const fechaCita ='25 de Diciembre de 2025'

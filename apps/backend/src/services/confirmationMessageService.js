@@ -1,7 +1,9 @@
 //Aqui se vera toda la logica relacionada con el envio de mensajes de confirmacion a traves del boton
-import { rellenadoDatosPacienteCancela } from '../../../bot-gateway/templates/pacienteCancelaTemplate.js';
+import { rellenadoDatosPacienteCancela} from '../../../bot-gateway/templates/pacienteCancelaTemplate.js';
 import {prisma} from '../config/prisma.js';
 import { styleText } from 'node:util';
+import { rellenadoDatos } from '../../../bot-gateway/templates/confirmTemplate.js';
+import { rellenadoDatosInformacion } from '../../../bot-gateway/templates/informationTemplate.js';
 process.loadEnvFile('../../../.env');
 //----------------------------------------Obtencion de datos de cita-------------------------------------------
 //Funcion que obtiene los datos de la cita a traves del id de la cita
@@ -10,6 +12,7 @@ process.loadEnvFile('../../../.env');
 
 
 export async function obtenerDatosCita(ids = []){
+    console.log("IDs que entran a obtenerDatosCita: ", ids);
     ids = ids.map(id => parseInt(id));  //Convertir todos los ids en numericos, ya que entran como strings
     //Con el map se asegura que se ejecute la funcion para cada id en el array
     try{
@@ -157,7 +160,7 @@ export async function asociarMensajeCita(wamid_envio, idCita){
 //Funcion que busca la cita en la DB a traves del wamid del mensaje enviado
 //Entradas: wamid: ID del mensaje enviado
 //Salida: objeto cita con el ID de la cita e.j {id: 20}
-async function buscarCitaPorWamid(wamid) {
+export async function buscarCitaPorWamid(wamid) {
     try {
         const cita = await prisma.cita.findFirst({
             where: { paciente_rut: wamid },
@@ -276,24 +279,29 @@ async function obtenerWamidCita(idCita){
         return null;
     }
 }
+/* Hace falta darle mas vueltas al asunto, de momento lo traspaso a una forma mas sencilla, es decir, al webhook
 //----------------------------------------Decision de envio de plantilla----------------------------------------
 //Funcion que decide que plantilla enviar segun el estado de la cita
 //Entradas: estadoCita: estado de la cita e.j 'pendiente', 'confirmada', 'cancelada', 'enviado', 'recibido', 'leido'
 //Salida: nombre de la plantilla a enviar e.j 'confirmacion_cita', 'recordatorio_cita', 'cita_confirmada', 'cita_cancelada'. Ojo son solo ejemplos, no son los nombres reales de las plantillas
-export async function decidirPlantillaEnvio(estadoCita, idCita){
+export async function decidirPlantillaEnvio(idCita){
     //Caso en el que wamid no existe, quiere decir que no se ha enviado ningun mensaje aun
     const wamid = await obtenerWamidCita(idCita);
     const estadoActualCita = await obtenerEstadoCita(idCita);
     if (!wamid){ //En caso de que no haya nada en el campo de wamid, es decir, no se ha enviado ningun mensaje aun
-        if (estadoCita === 'pendiente' && estadoActualCita != 'confirmada' && estadoActualCita != 'cancelada'){ //Se verifica si el estado de la cita es pendiente, ya que si es otra cosa no se deberia enviar nada (desde el front se puede agregar automaticamente los estados de confirmada y cancelada, en esos casos no se envian los mensajes de confirmacion, pq se asume que ya se confirmo o cancelo por otro medio)
+        if (estadoActualCita === 'pendiente' && estadoActualCita != 'confirmada' && estadoActualCita != 'cancelada'){ //Se verifica si el estado de la cita es pendiente, ya que si es otra cosa no se deberia enviar nada (desde el front se puede agregar automaticamente los estados de confirmada y cancelada, en esos casos no se envian los mensajes de confirmacion, pq se asume que ya se confirmo o cancelo por otro medio)
+            console.log(styleText('bgYellow', `Decidiendo plantilla a enviar para cita ${idCita}: ${mapearPlantilla('confirmacion_cita')}`));
             return mapearPlantilla('confirmacion_cita');
+
         }
     }else if (wamid){ //Hay que agregar un paso mas, que seria que si existe un wamid, pero el estado se cambia internamente a confirmada o cancelada, no se deberian de enviar mensajes (Falta manejar el cancelado de cita por parte de funcionario aun)
         //Para el momento en el que exista un manejo de la cancelacion de cita por parte del funcionario, se deberia agregar una condicion mas que verifique si el estado actual de la cita es por parte del paciente o del fucnionario, algo asi como canceladoPaciente o canceladoFuncionario, ya que se enviarian 2 plantillas diferentes segun el caso
         if (estadoActualCita === 'confirmada'){
+            console.log(styleText('bgYellow', `Decidiendo plantilla a enviar para cita ${idCita}: ${mapearPlantilla('informacion_cita')}`));
             return mapearPlantilla('informacion_cita');
             //To Do: Luego de enviar la plantilla con la informacion, se entra en el modo de recordatorios, que aun no esta implementado
         }else if (estadoActualCita === 'cancelada'){
+            console.log(styleText('bgYellow', `Decidiendo plantilla a enviar para cita ${idCita}: ${mapearPlantilla('cancelada_cita_paciente')}`));
             return mapearPlantilla('cancelada_cita_paciente');
         }
     }
@@ -303,11 +311,11 @@ export async function decidirPlantillaEnvio(estadoCita, idCita){
 //Funcion que rellena las plantillas con los datos de la cita segun plantilla a enviar
 //Entradas: nombrePlantilla: nombre de la plantilla a enviar, datosCita: objeto con los datos de la cita (telefono, nombre, especialidad, fecha y id)
 //Salida: objeto con los parametros rellenados para enviar a la API de WhatsApp Business
-/* 
-export function rellenarPlantilla(idCita){
- const datosCita = obtenerDatosCita([idCita]); //Obtener los datos de la cita a traves del ID de la cita
- const plantilla = decidirPlantillaEnvio(datosCita[0].estado, idCita); //Llama a la funcion que decide que plantilla enviar segun el estado de la cita
 
+export async function rellenarPlantilla(idCita){
+ const datosCita = await obtenerDatosCita([idCita]); //Obtener los datos de la cita a traves del ID de la cita
+ const plantilla = await decidirPlantillaEnvio(idCita); //Llama a la funcion que decide que plantilla enviar segun el estado de la cita
+ console.log(styleText('bgGray', `Plantilla a enviar: ${plantilla}`));
     switch (plantilla){
         case mapearPlantilla('confirmacion_cita'): 
             console.log(styleText('bgGreen', `Rellenando plantilla de confirmacion: ${plantilla}`));
@@ -323,5 +331,4 @@ export function rellenarPlantilla(idCita){
             return null;
     }
 
-}
-    */
+}*/
