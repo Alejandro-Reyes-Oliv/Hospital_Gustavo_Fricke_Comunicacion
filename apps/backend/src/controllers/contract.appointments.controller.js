@@ -1,4 +1,4 @@
-process.loadEnvFile('../.env');
+//process.loadEnvFile('../.env');
 
 import { CitaService } from "../services/cita.service.js";
 import { prisma } from "../config/prisma.js";
