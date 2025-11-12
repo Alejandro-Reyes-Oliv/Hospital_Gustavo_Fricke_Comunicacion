@@ -98,3 +98,16 @@ export async function enviarRecordatorio({
 
   return { wamidTemplate, wamidInteractive };
 }
+
+export async function enviarTexto({ to, body }) {
+  if (!to || !body) throw new Error("to y body son requeridos");
+  const payload = {
+    messaging_product: "whatsapp",
+    to,
+    type: "text",
+    text: { body }
+  };
+  const resp = await metaRequest(payload);
+  const wamid = resp?.messages?.[0]?.id || null;
+  return { wamid };
+}

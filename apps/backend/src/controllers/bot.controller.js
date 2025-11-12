@@ -46,21 +46,21 @@ export async function ingestEvent(req, res) {
       //Para no complicar tanto el envio de otras plantillas, aca tomare la respuesta del paciente y segun cual sea se envia una u otra plantilla
       
       if (reply === 'asistiré'){
-        console.log(styleText("bgGreen", "El paciente ha confirmado la cita, se debe enviar plantilla de informacion"));
+        //console.log(styleText("bgGreen", "El paciente ha confirmado la cita, se debe enviar plantilla de informacion"));
         let idCita = []
         idCita.push(Object.values(await buscarCitaPorWamid(wamid_contexto)));
-        console.log(styleText("bgRed", `ID de la cita obtenida para enviar plantilla de informacion: ${idCita}`));
+        //console.log(styleText("bgRed", `ID de la cita obtenida para enviar plantilla de informacion: ${idCita}`));
         const datosCita = await obtenerDatosCita(idCita[0]);
-        console.log(styleText("bgBlue", `Datos de la cita obtenidos para enviar plantilla de informacion: ${datosCita[0].paciente_telefono}`));
+        //console.log(styleText("bgBlue", `Datos de la cita obtenidos para enviar plantilla de informacion: ${datosCita[0].paciente_telefono}`));
         const payload = rellenadoDatosInformacion(datosCita[0].fecha_hora[0], datosCita[0].fecha_hora[1], datosCita[0].paciente_telefono);
         enviarMensaje(payload);
       }else if (reply === 'no asistiré'){
-        console.log(styleText("bgRed", "El paciente ha cancelado la cita, se debe enviar plantilla de cancelacion"));
+        //console.log(styleText("bgRed", "El paciente ha cancelado la cita, se debe enviar plantilla de cancelacion"));
         let idCita = []
         idCita.push(Object.values(await buscarCitaPorWamid(wamid_contexto)));
-        console.log(styleText("bgRed", `ID de la cita obtenida para enviar plantilla de cancelacion: ${idCita}`));
+        //console.log(styleText("bgRed", `ID de la cita obtenida para enviar plantilla de cancelacion: ${idCita}`));
         const datosCita = await obtenerDatosCita(idCita[0]);
-        console.log(styleText("bgBlue", `Datos de la cita obtenidos para enviar plantilla de cancelacion: ${datosCita[0].paciente_telefono}`));
+        //console.log(styleText("bgBlue", `Datos de la cita obtenidos para enviar plantilla de cancelacion: ${datosCita[0].paciente_telefono}`));
         const payload = rellenadoDatosPacienteCancela(datosCita[0].paciente_telefono);
         enviarMensaje(payload);
         //const payload = rellenadoDatosPacienteCancela(datosCita[0].paciente_telefono);
