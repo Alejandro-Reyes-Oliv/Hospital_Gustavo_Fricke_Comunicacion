@@ -1,4 +1,4 @@
-process.loadEnvFile('../.env');
+process.loadEnvFile('../../../.env');
 
 import { CitaService } from "../services/cita.service.js";
 import { prisma } from "../config/prisma.js";
@@ -25,34 +25,6 @@ const normalizeSort = (sort) => {
 export const AppointmentsContractController = {
   list: async (req, res, next) => {
     try {
-<<<<<<< Updated upstream
-      const { search, estado, medicoId, from, to, page = 1, pageSize = 1000, sort = "fechaCita:asc" } = req.query;
-      
-      
-      const where = {
-        AND: [
-          from ? { fecha_hora: { gte: new Date(from) } } : {},
-          to ? { fecha_hora: { lte: new Date(to) } } : {},
-          medicoId ? { doctorId: Number(medicoId) } : {},
-          estado ? { estado } : {},
-          search
-            ? {
-                OR: [
-                  { paciente_nombre: { contains: search, mode: "insensitive" } },
-                  { paciente_rut: { contains: search, mode: "insensitive" } },
-                  { paciente_telefono: { contains: search, mode: "insensitive" } },
-                ],
-              }
-            : {},
-        ],
-      };
-      const skip = (Number(page) - 1) * Number(pageSize);
-      const [rows, total] = await Promise.all([
-        prisma.cita.findMany({ where, take: Number(pageSize), skip, orderBy: normalizeSort(sort) }),
-        prisma.cita.count({ where }),
-      ]);
-      return ok(res, pageOut({ data: rows.map(mapCitaToDTO), page: Number(page), pageSize: Number(pageSize), total }));
-=======
       // params actuales que ya recibes
       const {
         search, estado, medicoId, from, to,
@@ -121,7 +93,7 @@ export const AppointmentsContractController = {
           total,
         })
       );
->>>>>>> Stashed changes
+
     } catch (e) {
       next(e);
     }
@@ -195,7 +167,6 @@ export const AppointmentsContractController = {
 
   sendBot: async (req, res, next) => {
     const { WSP_TOKEN, GRAPH_BASE } = process.env;
-
     try{
       const { ids = []} = req.body; // Aca se guardan el o los id's de las citas que entran a la funcion (Ya que el front solo manda las id's)
       const datosCitas = await obtenerDatosCita(ids) //Llamar a la funcion que obtiene los datos de la cita a traves de las ids entrantes
@@ -208,14 +179,18 @@ export const AppointmentsContractController = {
       
       //- - - - - - - - - - - - - - - - - - - - - - - Envio de mensaje de confirmacion de cita - - - - - - - - - - - - - - - - - - - 
       datosCitas.forEach(async cita => {  //Aca se itera por cada cita en el array de citas para enviar el mensaje individualmente
-            const response = await fetch(`${GRAPH_BASE}/messages`, {
+         
+    
+        //En esta parte deberia de juntarla con el arbol de decisiones para enviar diferentes tipos de plantillas segun el estado de la cita
+        //referente al comentario anterior, el arbol de decisiones no existe de momento, por lo que se envia siempre la plantilla de confirmacion    
+        const response = await fetch(`${GRAPH_BASE}/messages`, {
             method: "POST",
             headers: {
               "Authorization": `Bearer ${WSP_TOKEN}`,
               "Content-Type": "application/json"
             },
             body: rellenadoDatos(cita.paciente_nombre, cita.fecha_hora[0], cita.fecha_hora[1], cita.paciente_telefono)
-            
+          
         
             });
           

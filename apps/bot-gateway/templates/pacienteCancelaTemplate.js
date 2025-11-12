@@ -5,7 +5,7 @@ process.loadEnvFile('../../../.env');
 const TOKEN = process.env.WSP_TOKEN 
 const GRAPH_BASE = process.env.GRAPH_BASE 
 const TEMPLATE = process.env.CANCELADA_TEMPLATE_END
-console.log('TEMPLATE EN confirmTemplate.js:', TEMPLATE);
+//console.log('TEMPLATE EN pacienteCancelaTemplate.js:', TEMPLATE);
 //console.log('GRAPH BASE EN confirmTemplate.js:', GRAPH_BASE);
 //console.log('TOKEN EN confirmTemplate.js:', TOKEN);
 const numeroPaciente ='56955333737'
