@@ -8,7 +8,7 @@ process.loadEnvFile('../../../.env');
 //----------------------------------------Obtencion de datos de cita-------------------------------------------
 //Funcion que obtiene los datos de la cita a traves del id de la cita
 //Entradas: ids = [id1, id2, id3...]  (Array de id's de las citas)
-//Salida: Array con el telefono, nombre del paciente, especialidad, fecha de la cita y la id para luego asociarlo al mensaje
+//Salida: Array con el telefono, nombre del paciente, especialidad, fecha de la cita y la id para luego asociarlo al mensaje enviado e.j [{paciente_telefono: '56912345678', paciente_nombre: 'Juan Perez', especialidad_snap: 'Cardiologia', fecha_hora: ['2025-11-11', '10:00'], id: 1}, {...}, {...}]
 
 
 export async function obtenerDatosCita(ids = []){
