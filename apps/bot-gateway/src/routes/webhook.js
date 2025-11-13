@@ -2,7 +2,7 @@ import { Router } from 'express';
 import crypto from 'crypto';
 import { logInbound } from '../lib/logger.js';
 import { forwardInbound } from '../lib/forward.js';
-process.loadEnvFile('../.env');
+process.loadEnvFile('../../.env');
 const router = Router();
 
 /**

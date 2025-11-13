@@ -4,7 +4,7 @@ import {prisma} from '../config/prisma.js';
 import { styleText } from 'node:util';
 import { rellenadoDatos } from '../../../bot-gateway/templates/confirmTemplate.js';
 import { rellenadoDatosInformacion } from '../../../bot-gateway/templates/informationTemplate.js';
-process.loadEnvFile('../../../.env');
+process.loadEnvFile('../../.env');
 //----------------------------------------Obtencion de datos de cita-------------------------------------------
 //Funcion que obtiene los datos de la cita a traves del id de la cita
 //Entradas: ids = [id1, id2, id3...]  (Array de id's de las citas)

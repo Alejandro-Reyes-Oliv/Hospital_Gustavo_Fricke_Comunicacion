@@ -1,11 +1,11 @@
 // apps/bot-gateway/src/server.js
 import express from "express";
 
-process.loadEnvFile('../../../.env');
+process.loadEnvFile('@/../../.env');
 
 //Config
 const app = express();
-const PORT = process.env.WEBHOOKPORT //|| 8082;
+const PORT = process.env.WEBHOOKPORT || 8082;
 const BACKEND_URL = process.env.BACKEND_URL //|| "http://localhost:8000";
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN //|| "frikitona";
 //console.log("Config: ", process.env.BACKEND_URL + "\n" + process.env.WHATSAPP_VERIFY_TOKEN) ;

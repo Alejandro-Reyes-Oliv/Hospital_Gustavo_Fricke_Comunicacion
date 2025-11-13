@@ -1,6 +1,7 @@
 // src/features/medicos/services/medicos.js
 import api, { assertApi } from "../../../shared/lib/apiClient.js";
 
+
 // Ruta fija según tu back:
 const BASE = "/api/doctors";
 
