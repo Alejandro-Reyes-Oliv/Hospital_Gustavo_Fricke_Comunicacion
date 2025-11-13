@@ -190,7 +190,7 @@ export async function cambiarEstadoCita(wamid_contexto, respuesta){
             
             const estadoActualCita = await obtenerEstadoCita(idCita.id); //Obtener el estado actual de la cita para evitar sobreescribir estados importantes ya que el flow es pendiente -> confirmada ó cancelada, si se recibe una no puede cambiarse a la otra
             console.log("Estado actual de la cita: ", estadoActualCita);
-            if (estadoActualCita != 'confirmada' && estadoActualCita != 'cancelada'){ //En este caso es cuando la cita aun no ha sido confirmada ni cancelada, se puede cambiar el estado
+            if (estadoActualCita != 'confirmada' && estadoActualCita != 'cancelada' && estadoActualCita != 'recordado'){ //En este caso es cuando la cita aun no ha sido confirmada ni cancelada, se puede cambiar el estado
                 await prisma.cita.update({
                     where: {id : idCita.id, paciente_rut: wamid_contexto }, //Buscar la cita por ID y por el wamid del mensaje al que se responde
                     data: { estado: respuestaMapeada }

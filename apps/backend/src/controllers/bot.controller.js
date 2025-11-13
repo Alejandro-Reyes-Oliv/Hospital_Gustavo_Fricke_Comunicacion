@@ -20,6 +20,11 @@ export async function sendConfirmation(req, res) {
   }
 }
 */
+
+//----------------------------------------Ingreso de eventos desde el webhook-------------------------------------------
+//Funcion que ingresa los eventos enviados por el webhook de Meta y realiza los cambios necesarios en la base de datos segun la respuesta //Nose que hacia antes esta funcion, pero la cambie
+//Entradas: req.body = { objeto con la informacion enviada por el webhook }
+//Salida: Respuesta JSON con ok: true o false y error en caso de fallo
 export async function ingestEvent(req, res) {
   
   try {
@@ -78,6 +83,8 @@ export async function ingestEvent(req, res) {
   }
   
 }
+
+
 /*
 export async function listMessagesByCita(req, res) {
   try {
@@ -100,3 +107,4 @@ export async function getConfirmationState(req, res) {
   }
 }
 */
+

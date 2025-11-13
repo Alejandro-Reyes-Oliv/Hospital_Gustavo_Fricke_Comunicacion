@@ -25,6 +25,7 @@ enum EstadoCita {
   enviado
   recibido
   leido
+  recordado
 }
 
 model Cita {
