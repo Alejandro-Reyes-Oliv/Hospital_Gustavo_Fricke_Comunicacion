@@ -1,7 +1,12 @@
 // src/features/medicos/pages/MedicosPage.jsx
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useMedicosList, useCreateDoctor, useUpdateDoctor } from "../hooks/useMedicosQuery.js";
+import {
+  useMedicosList,
+  useCreateDoctor,
+  useUpdateDoctor,
+  useDeleteDoctor,
+} from "../hooks/useMedicosQuery.js";
 import NewDoctorModal from "../components/NewDoctorModal.jsx";
 import MedicosTable from "../components/MedicosTable.jsx";
 import ErrorBanner from "../../../shared/components/ErrorBanner.jsx";
@@ -15,6 +20,7 @@ export default function MedicosPage() {
   const { data, isLoading, error } = useMedicosList();
   const createMut = useCreateDoctor();
   const updMut = useUpdateDoctor();
+  const delMut = useDeleteDoctor();
 
   const rows = useMemo(() => {
     const raw = data?.data ?? data ?? [];
@@ -40,13 +46,28 @@ export default function MedicosPage() {
 
   // Recibe el valor explícito true/false
   const onSetActive = (id, value) => {
-    // Enviamos varios alias para maximizar compatibilidad con el backend
-    const patch = { is_active: !!value, activo: !!value, estado: value ? "activo" : "inactivo" };
+  if (value) {
+    // HABILITAR → PATCH (se mantiene como antes)
+    const patch = {
+      is_active: true,
+      activo: true,
+      estado: "activo",
+    };
     updMut.mutate(
       { id, patch },
-      { onSettled: () => qc.invalidateQueries({ queryKey: ["medicos"], exact: false }) }
+      {
+        onSettled: () =>
+          qc.invalidateQueries({ queryKey: ["medicos"], exact: false }),
+      }
     );
-  };
+  } else {
+    // DESHABILITAR → DELETE (usa el flujo que ya probaste por curl)
+    delMut.mutate(id, {
+      onSettled: () =>
+        qc.invalidateQueries({ queryKey: ["medicos"], exact: false }),
+    });
+  }
+};
 
   if (isLoading) {
     return (

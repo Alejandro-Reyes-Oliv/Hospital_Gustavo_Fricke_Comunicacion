@@ -1,92 +1,191 @@
+// apps/backend/src/services/doctor.service.js
 import { prisma } from "../config/prisma.js";
-import { enviarTexto } from "../../../bot-gateway/Prueba-05.js";
+import {
+  enviarAvisoCancelacion,
+  normalizaTelefonoCL,
+} from "../../../bot-gateway/templates/reagendar.js";
+
+// helper: distintas formas de "false"
+function isFalseyFlag(value) {
+  if (value === false) return true;
+  if (value === 0) return true;
+  if (typeof value === "string") {
+    const v = value.trim().toLowerCase();
+    if (["false", "0", "no", "off"].includes(v)) return true;
+    if (["inactivo", "inactive", "disabled"].includes(v)) return true;
+  }
+  return false;
+}
+
+// decide si este PATCH quiere deshabilitar al doctor
+function wantsDeactivate(data) {
+  if (!data || typeof data !== "object") return false;
+
+  if ("activo" in data && isFalseyFlag(data.activo)) return true;
+  if ("is_active" in data && isFalseyFlag(data.is_active)) return true;
+  if ("enabled" in data && isFalseyFlag(data.enabled)) return true;
+  if ("disabled" in data && isFalseyFlag(data.disabled)) return true;
+
+  if (typeof data.estado === "string" && isFalseyFlag(data.estado)) return true;
+  if (typeof data.status === "string" && isFalseyFlag(data.status)) return true;
+
+  return false;
+}
 
 export const DoctorService = {
-  listar: async ({ q, especialidad, activo, limit = 20, offset = 0, order = "nombre:asc" }) => {
+  listar: async ({
+    q,
+    especialidad,
+    activo,
+    limit = 20,
+    offset = 0,
+    order = "nombre:asc",
+  }) => {
     const [campo, dir] = order.split(":");
     return prisma.doctor.findMany({
       where: {
         AND: [
-          q ? { nombre: { contains: q, mode: "insensitive" } } : {},
+          q
+            ? { nombre: { contains: q, mode: "insensitive" } }
+            : {},
           especialidad ? { especialidad } : {},
-          typeof activo === "boolean" ? { activo } : {}
-        ]
+          typeof activo === "boolean" ? { activo } : {},
+        ],
       },
       take: Number(limit),
       skip: Number(offset),
-      orderBy: { [campo || "nombre"]: (dir === "desc" ? "desc" : "asc") }
+      orderBy: {
+        [campo || "nombre"]: dir === "desc" ? "desc" : "asc",
+      },
     });
   },
 
-  obtener: (id) => prisma.doctor.findUnique({ where: { id: Number(id) } }),
+  obtener: (id) =>
+    prisma.doctor.findUnique({
+      where: { id: Number(id) },
+    }),
 
-  crear: (data) => prisma.doctor.create({ data }),
+  crear: (data) =>
+    prisma.doctor.create({
+      data,
+    }),
 
-  actualizar: (id, data) =>
-    prisma.doctor.update({ where: { id: Number(id) }, data }),
-
-  // Soft delete + cancelar citas + avisar por WhatsApp
-  eliminar: async (id) => {
-    //Al presionar el boton de eliminar doctor
-    //Se buscaran las citas asociadas a ese doctor
-    //Se cambiara el estado de las citas a cancelada (en este paso es complicado diferenciar si se cancelo por parte del operador o del paciente, a menos que el envio de mensaje este descentralizado)
-    //Se enviara un mensaje a los pacientes informandoles de la cancelacion de la cita
-  }  
-    
-}  
-  /*
+  /**
+   * PATCH /api/doctors/:id
+   *
+   * - Si el payload representa "deshabilitar" (activo=false, is_active=false, estado='inactivo', etc),
+   *   delega en eliminar():
+   *      • desactiva doctor
+   *      • cancela citas futuras
+   *      • envía WhatsApp
+   * - Si no, hace un update normal.
+   */
+  actualizar: async (id, data) => {
     const doctorId = Number(id);
 
-    // 1) Traer snapshot del doctor (para fallback de especialidad)
-    const doctor = await prisma.doctor.findUnique({ where: { id: doctorId } });
-    if (!doctor) throw new Error("Doctor no encontrado");
+    if (wantsDeactivate(data)) {
+      console.log(
+        `[DoctorService.actualizar] detectado deshabilitar via PATCH, delegando en eliminar (doctorId=${doctorId}, body=${JSON.stringify(
+          data
+        )})`
+      );
 
+      // si vienen otros campos aparte de "activo"/"estado"/etc., los persistimos antes
+      const {
+        activo,
+        is_active,
+        enabled,
+        disabled,
+        estado,
+        status,
+        ...rest
+      } = data;
+      if (Object.keys(rest).length > 0) {
+        await prisma.doctor.update({
+          where: { id: doctorId },
+          data: rest,
+        });
+      }
+
+      return DoctorService.eliminar(doctorId);
+    }
+
+    // PATCH normal (sin deshabilitar)
+    return prisma.doctor.update({
+      where: { id: doctorId },
+      data,
+    });
+  },
+
+  /**
+   * DELETE /api/doctors/:id
+   *
+   * - pone doctor.activo = false
+   * - cancela TODAS las citas FUTURAS no-canceladas de ese doctor
+   * - envía WhatsApp de cancelación por cada cita
+   */
+  eliminar: async (id) => {
+    const doctorId = Number(id);
     const ahora = new Date();
 
-    // 2) Traer citas objetivo (futuras o no-canceladas)
+    // 1) Snapshot del doctor
+    const doctor = await prisma.doctor.findUnique({
+      where: { id: doctorId },
+    });
+    if (!doctor) {
+      throw new Error(`Doctor no encontrado (id=${doctorId})`);
+    }
+
+    // 2) Citas futuras no canceladas
     const citas = await prisma.cita.findMany({
       where: {
-        doctorId,
-        OR: [
-          { fecha_hora: { gt: ahora } },              // futuras
-          { estado: { not: "cancelada" } }            // o simplemente no-canceladas
-        ]
+        doctorId: doctorId,
+        estado: { not: "cancelada" },
+        fecha_hora: { gt: ahora },
       },
       select: {
         id: true,
         paciente_telefono: true,
         especialidad_snap: true,
-        fecha_hora: true
-      }
+      },
     });
 
-    // 3) Transacción: desactivar doctor + marcar citas canceladas
+    // 3) Desactivar doctor + marcar citas canceladas (transacción)
     await prisma.$transaction(async (tx) => {
       await tx.doctor.update({
         where: { id: doctorId },
-        data: { activo: false }
+        data: { activo: false },
       });
 
       if (citas.length > 0) {
         await tx.cita.updateMany({
-          where: { id: { in: citas.map(c => c.id) } },
-          data: { estado: "cancelada" }
+          where: { id: { in: citas.map((c) => c.id) } },
+          data: { estado: "cancelada" },
         });
       }
     });
 
-    // 4) Enviar mensajes y registrar BotMessage (fuera de la transacción)
-    //    (si falla algún envío, no revertimos el soft delete)
+    console.log(
+      `[DoctorService.eliminar] doctorId=${doctorId}, citas marcadas canceladas=${citas.length}`
+    );
+
+    // 4) Enviar WhatsApp + registrar botMessage (fuera de la TX)
+    let enviados = 0;
+    let fallidos = 0;
+
     for (const c of citas) {
-      const to = normalizaTelefonoCL(c.paciente_telefono);
-      const especialidad = c.especialidad_snap || doctor.especialidad || "su especialidad";
+      const especialidad =
+        c.especialidad_snap || doctor.especialidad || "su especialidad";
+      const text = `Se informa que se ha cancelado su cita de especialidad ${especialidad}, por favor reagendar.`;
 
-      const texto = `Su cita en especialidad ${especialidad} ha sido cancelada, por favor contactar hospital.`;
-
+      let to = String(c.paciente_telefono || "");
       try {
-        const { wamid } = await enviarTexto({ to, body: texto });
+        to = normalizaTelefonoCL(c.paciente_telefono);
+        const { wamid } = await enviarAvisoCancelacion({
+          to,
+          especialidad,
+        });
 
-        // Registrar OUTBOUND en BotMessage
         await prisma.botMessage.create({
           data: {
             citaId: c.id,
@@ -94,13 +193,24 @@ export const DoctorService = {
             provider: "whatsapp",
             providerMessageId: wamid,
             toPhone: to,
-            text: texto,
-            payload: { type: "text.cancel_doctor" }, // etiqueta mínima para trazabilidad
-            status: "PENDING" // (con tu enum: PENDING/DELIVERED/REPLIED/FAILED)
-          }
+            text,
+            payload: { type: "text.cancel_doctor" },
+            status: "PENDING",
+          },
         });
+
+        enviados++;
+        console.log(
+          `[DoctorService.eliminar] WhatsApp OK citaId=${c.id}, to=${to}, wamid=${wamid}`
+        );
       } catch (err) {
-        // Si falla el envío, dejamos evidencia
+        fallidos++;
+        console.error(
+          `[DoctorService.eliminar] WhatsApp FAIL citaId=${c.id}, to=${to}, error=${String(
+            err?.message || err
+          )}`
+        );
+
         await prisma.botMessage.create({
           data: {
             citaId: c.id,
@@ -108,59 +218,28 @@ export const DoctorService = {
             provider: "whatsapp",
             providerMessageId: null,
             toPhone: to,
-            text: texto,
-            payload: { type: "text.cancel_doctor", error: String(err?.message || err) },
-            status: "FAILED"
-          }
+            text,
+            payload: {
+              type: "text.cancel_doctor",
+              error: String(err?.message || err),
+            },
+            status: "FAILED",
+          },
         });
       }
     }
 
-    // devuelve algo simple
-    return { ok: true, canceladas: citas.length };
-  }
-};
+    console.log(
+      `[DoctorService.eliminar] doctorId=${doctorId}, enviados=${enviados}, fallidos=${fallidos}`
+    );
 
-// util local mínima (mismo criterio que tu servicio de bot)
-function normalizaTelefonoCL(raw) {
-  const n = String(raw ?? "").replace(/[^\d]/g, "");
-  if (!n) throw new Error("Teléfono inválido");
-  if (n.startsWith("56")) return `+${n}`;
-  if (n.length === 9) return `+56${n}`;
-  return `+${n}`;
-}
-*/
-
-
-
-/* Version antigua, sin la cadena de envio de mensaje si se eliminan las citas
-import { prisma } from "../config/prisma.js";
-
-export const DoctorService = {
-  listar: async ({ q, especialidad, activo, limit = 20, offset = 0, order = "nombre:asc" }) => {
-    const [campo, dir] = order.split(":");
-    return prisma.doctor.findMany({
-      where: {
-        AND: [
-          q ? { nombre: { contains: q, mode: "insensitive" } } : {},
-          especialidad ? { especialidad } : {},
-          typeof activo === "boolean" ? { activo } : {}
-        ]
-      },
-      take: Number(limit),
-      skip: Number(offset),
-      orderBy: { [campo || "nombre"]: (dir === "desc" ? "desc" : "asc") }
-    });
+    return {
+      ok: true,
+      doctorId,
+      canceladas: citas.length,
+      enviados,
+      fallidos,
+    };
   },
-
-  obtener: (id) => prisma.doctor.findUnique({ where: { id: Number(id) } }),
-
-  crear: (data) => prisma.doctor.create({ data }),
-
-  actualizar: (id, data) =>
-    prisma.doctor.update({ where: { id: Number(id) }, data }),
-
-  // si algún día habilitas borrado duro:
-  eliminar: (id) => prisma.doctor.update({ where: { id: Number(id) }, data: { activo: false } }),
 };
 */

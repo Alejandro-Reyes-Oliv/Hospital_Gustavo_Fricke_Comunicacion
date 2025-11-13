@@ -1,5 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listDoctors, createDoctor, updateDoctor } from "../services/medicos.js";
+import {
+  listDoctors,
+  createDoctor,
+  updateDoctor,
+  deleteDoctor,
+} from "../services/medicos.js";
+
 
 const asArray = (raw) =>
   Array.isArray(raw) ? raw : Array.isArray(raw?.items) ? raw.items : Array.isArray(raw?.data) ? raw.data : [];
@@ -76,5 +82,15 @@ export function useUpdateDoctor() {
       ctx?.snapshots?.forEach(([key, old]) => qc.setQueryData(key, old));
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["medicos"] }),
+  });
+}
+
+export function useDeleteDoctor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => deleteDoctor(id),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["medicos"], exact: false });
+    },
   });
 }

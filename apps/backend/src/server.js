@@ -5,7 +5,6 @@ import { startReminderScheduler } from "./services/recordatorioService.js";
 
 const PORT = process.env.PORT || 8080;
 
-// monta rutas ANTES de listen
 app.use("/api", botRoutes);
 
 startReminderScheduler();

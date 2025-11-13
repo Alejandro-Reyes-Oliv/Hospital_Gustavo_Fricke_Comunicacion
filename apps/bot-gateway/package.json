@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "// === Dev / Run ===": "",
-    "dev": "nodemon --watch src --ext js,json --signal SIGTERM src/server.js",
+    "dev": "nodemon --exec \"node --env-file=./.env\" src/index.js",
     "start": "node src/server.js",
     "// === Webhook público (opcional) ===": "",
     "dev:public": "lt --port 8082 --subdomain hgf-bot",

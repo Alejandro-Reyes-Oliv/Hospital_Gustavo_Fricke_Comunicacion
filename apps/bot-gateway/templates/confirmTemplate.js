@@ -1,7 +1,7 @@
 //Plantilla de confirmacion de cita medica via WhatsApp usando la API de Meta
 //To Do: Hacer que solo sea la plantilla y el fetch se haga en el service o controller ---------------------
 //entradas: datosCita(paciente_nombre, especialidad_snap, fecha_hora, numero_telefono)
-process.loadEnvFile('../../../.env');
+process.loadEnvFile('../../.env');
 
 
 // import { fileURLToPath } from 'node:url';
