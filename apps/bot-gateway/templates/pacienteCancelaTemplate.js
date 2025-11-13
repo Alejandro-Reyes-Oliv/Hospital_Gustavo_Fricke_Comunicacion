@@ -8,7 +8,7 @@ const TEMPLATE = process.env.CANCELADA_TEMPLATE_END
 //console.log('TEMPLATE EN pacienteCancelaTemplate.js:', TEMPLATE);
 //console.log('GRAPH BASE EN confirmTemplate.js:', GRAPH_BASE);
 //console.log('TOKEN EN confirmTemplate.js:', TOKEN);
-const numeroPaciente ='56955333737'
+
 export function rellenadoDatosPacienteCancela (numeroPaciente) {
     
     const payload = {

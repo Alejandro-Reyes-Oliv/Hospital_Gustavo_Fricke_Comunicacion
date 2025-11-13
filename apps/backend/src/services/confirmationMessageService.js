@@ -251,7 +251,7 @@ export async function cambiarEstadoMensaje(wamid_enviado, estado){
 //Funcion que obtiene el estado de la cita a traves del ID de la cita
 //Entradas: idCita: ID de la cita
 //Salida: estado de la cita e.j 'pendiente', 'confirmada', 'cancelada', 'enviado', 'recibido', 'leido'
-async function obtenerEstadoCita(idCita){
+export async function obtenerEstadoCita(idCita){
     try{
         const cita = await prisma.cita.findUnique({
             where: {id: idCita},

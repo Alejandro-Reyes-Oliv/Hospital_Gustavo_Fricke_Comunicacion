@@ -47,7 +47,7 @@ export const AppointmentsContractController = {
         conds.push(Prisma.sql`"doctorId" = ${Number(medicoId)}`);
       }
       if (estado) {
-        conds.push(Prisma.sql`"estado" = ${estado}`);
+        conds.push(Prisma.sql`"estado" = ${estado}::"EstadoCita"`);
       }
       if (search) {
         const like = `%${search}%`;

@@ -7,7 +7,9 @@
     "dev": "nodemon --watch src --ext js,json --signal SIGTERM src/server.js",
     "start": "node src/server.js",
     "// === Webhook público (opcional) ===": "",
-    "dev:public": "lt --port 8082 --subdomain hgf-bot"
+    "dev:public": "lt --port 8082 --subdomain hgf-bot",
+    "tunnel": "wait-on tcp:8082 && ngrok http --authtoken <COLOCAR EL TOKEN QUE DEJE EN EL .ENV> --domain=undelightful-danyel-hymnodical.ngrok-free.dev 8082",
+    "dev:tunnel": "concurrently -k -s first -n api,ngrok \"npm:dev\" \"npm:tunnel\""
   },
   "dependencies": {
     "contacto-fricke-monorepo": "file:../..",

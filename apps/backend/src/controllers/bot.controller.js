@@ -2,7 +2,7 @@
 import { rellenadoDatosInformacion } from '../../../bot-gateway/templates/informationTemplate.js';
 import { rellenadoDatosPacienteCancela } from '../../../bot-gateway/templates/pacienteCancelaTemplate.js';
 import * as service from '../services/bot.service.js';
-import { cambiarEstadoCita, cambiarEstadoMensaje, obtenerDatosCita, buscarCitaPorWamid } from '../services/confirmationMessageService.js';
+import { cambiarEstadoCita, cambiarEstadoMensaje, obtenerDatosCita, buscarCitaPorWamid, obtenerEstadoCita } from '../services/confirmationMessageService.js';
 import { styleText } from 'node:util';
 import { enviarMensaje } from '../services/sendMessageService.js';
 /*

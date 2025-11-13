@@ -1,7 +1,7 @@
 // apps/bot-gateway/src/server.js
 import express from "express";
 
-process.loadEnvFile('../../../.env');
+process.loadEnvFile('../../.env');
 
 //Config
 const app = express();
