@@ -1,6 +1,10 @@
 // apps/backend/src/controllers/bot.controller.js
+import { rellenadoDatosInformacion } from '../../../bot-gateway/templates/informationTemplate.js';
+import { rellenadoDatosPacienteCancela } from '../../../bot-gateway/templates/pacienteCancelaTemplate.js';
 import * as service from '../services/bot.service.js';
-import { cambiarEstadoCita } from '../services/confirmationMessageService.js';
+import { cambiarEstadoCita, cambiarEstadoMensaje, obtenerDatosCita, buscarCitaPorWamid } from '../services/confirmationMessageService.js';
+import { styleText } from 'node:util';
+import { enviarMensaje } from '../services/sendMessageService.js';
 /*
 export async function sendConfirmation(req, res) {
   try {
@@ -19,16 +23,53 @@ export async function sendConfirmation(req, res) {
 export async function ingestEvent(req, res) {
   
   try {
-    console.log("body que entra en el controller", req.body, " -------------------------------------")
+    console.log("body que entra en el controller", req.body.entry[0], " -------------------------------------")
     
-    const from = req.body.entry[0].changes[0].value.messages[0].from;
-    const reply = req.body.entry[0].changes[0].value.messages[0].button.payload.toLowerCase();
-    const wamid = req.body.entry[0].changes[0].value.messages[0].id;
-    const wamid_contexto = req.body.entry[0].changes[0].value.messages[0].context.id
-    const timestamp = req.body.entry[0].changes[0].value.messages[0].timestamp;
-    console.log("Datos que llegan al backend desde el gateway: ", { from, reply, wamid, timestamp })
-    //await service.processInboundEvent(req.body);
-    await cambiarEstadoCita(wamid_contexto, reply)
+
+    //Aca debo colocar la logica en caso de que lo que envie el webhook sea un status
+    if (req.body.entry[0].changes[0].value.statuses) {
+      const wamid_enviado = req.body.entry[0].changes[0].value.statuses[0].id;
+      const estado = req.body.entry[0].changes[0].value.statuses[0].status;
+      //console.log("Datos para cambiar estado del mensaje en la DB: ", { wamid_enviado, estado });
+      await cambiarEstadoMensaje(wamid_enviado, estado)
+    }
+    
+    
+    //Esta parte es de si hay contexto, es decir, si el usuario esta respondiendo a un mensaje enviado por el bot
+    if(req.body.entry[0].changes[0].value.messages){
+      
+      const wamid_contexto = req.body.entry[0].changes[0].value.messages[0].context.id
+      const reply = req.body.entry[0].changes[0].value.messages[0].button.payload.toLowerCase();
+      console.log(styleText("bgGreen",`Es una respuesta lo que llega al backend ${reply}`));
+      await cambiarEstadoCita(wamid_contexto, reply)
+  
+      //Para no complicar tanto el envio de otras plantillas, aca tomare la respuesta del paciente y segun cual sea se envia una u otra plantilla
+      
+      if (reply === 'asistiré'){
+        //console.log(styleText("bgGreen", "El paciente ha confirmado la cita, se debe enviar plantilla de informacion"));
+        let idCita = []
+        idCita.push(Object.values(await buscarCitaPorWamid(wamid_contexto)));
+        //console.log(styleText("bgRed", `ID de la cita obtenida para enviar plantilla de informacion: ${idCita}`));
+        const datosCita = await obtenerDatosCita(idCita[0]);
+        //console.log(styleText("bgBlue", `Datos de la cita obtenidos para enviar plantilla de informacion: ${datosCita[0].paciente_telefono}`));
+        const payload = rellenadoDatosInformacion(datosCita[0].fecha_hora[0], datosCita[0].fecha_hora[1], datosCita[0].paciente_telefono);
+        enviarMensaje(payload);
+      }else if (reply === 'no asistiré'){
+        //console.log(styleText("bgRed", "El paciente ha cancelado la cita, se debe enviar plantilla de cancelacion"));
+        let idCita = []
+        idCita.push(Object.values(await buscarCitaPorWamid(wamid_contexto)));
+        //console.log(styleText("bgRed", `ID de la cita obtenida para enviar plantilla de cancelacion: ${idCita}`));
+        const datosCita = await obtenerDatosCita(idCita[0]);
+        //console.log(styleText("bgBlue", `Datos de la cita obtenidos para enviar plantilla de cancelacion: ${datosCita[0].paciente_telefono}`));
+        const payload = rellenadoDatosPacienteCancela(datosCita[0].paciente_telefono);
+        enviarMensaje(payload);
+        //const payload = rellenadoDatosPacienteCancela(datosCita[0].paciente_telefono);
+        //enviarMensaje(payload);
+      }
+      
+    }
+
+    
 
     res.json({ ok: true });
   } catch (err) {

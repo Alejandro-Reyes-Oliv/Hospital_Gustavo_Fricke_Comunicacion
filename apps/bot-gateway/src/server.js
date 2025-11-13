@@ -1,11 +1,11 @@
 // apps/bot-gateway/src/server.js
 import express from "express";
 
-process.loadEnvFile('../../../.env');
+process.loadEnvFile('@/../../.env');
 
 //Config
 const app = express();
-const PORT = process.env.WEBHOOKPORT //|| 8082;
+const PORT = process.env.WEBHOOKPORT || 8082;
 const BACKEND_URL = process.env.BACKEND_URL //|| "http://localhost:8000";
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN //|| "frikitona";
 //console.log("Config: ", process.env.BACKEND_URL + "\n" + process.env.WHATSAPP_VERIFY_TOKEN) ;
@@ -47,14 +47,17 @@ app.post("/webhooks/whatsapp", async (req, res) => {
    //Hacer un if en el que solo entre si es de respuesta, es decir que contenga messages y no statuses
 
    if (req.body.entry[0].changes[0].value.statuses) {
-    console.log("Es un status, no se reenvia al backend");
+    //console.log("Es un status, no se reenvia al backend");
     console.log("Status recibido: ", req.body.entry[0].changes[0].value.statuses[0].status);
+    //console.log("id del mensaje en el confirmationservide: ", req.body.entry[0].changes[0].value.statuses[0].id)
+    //console.log("mensaje contexto: ", req.body.entry[0].changes[0].value.messages[0].context.id)
+  //Aca se puede agregar la llamada al backend para enviar el status recibido
    }
 
+  //En vez de separar segun es status o mensaje, enviar todo y luego procesar si es status se guarda en la BD y si es mensaje se procesa la respuesta del usuario
 
 
-
-   if (req.body.entry[0].changes[0].value.messages) {
+   //if (req.body.entry[0].changes[0].value.messages) {
     //console.log("datos del body ", req.body.entry[0].changes[0].value.metadata)
     //console.log("datos del mensaje ", req.body.entry[0].changes[0].value.messages[0])
     //console.log("id del contexto del mensaje anterior ", req.body.entry[0].changes[0].value.messages[0].context.id)
@@ -65,7 +68,7 @@ app.post("/webhooks/whatsapp", async (req, res) => {
      });
      const text = await backendResp.text().catch(() => "");
      console.log("texto de la respuesta del backend: ",text)
-   }
+   //}
 
     //console.log("Respuesta al backend? ",backendResp)
     

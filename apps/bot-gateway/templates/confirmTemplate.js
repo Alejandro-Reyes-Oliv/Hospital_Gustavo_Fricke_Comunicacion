@@ -1,17 +1,49 @@
 //Plantilla de confirmacion de cita medica via WhatsApp usando la API de Meta
 //To Do: Hacer que solo sea la plantilla y el fetch se haga en el service o controller ---------------------
 //entradas: datosCita(paciente_nombre, especialidad_snap, fecha_hora, numero_telefono)
-process.loadEnvFile('../../../.env');
+process.loadEnvFile('../../.env');
 
+
+// import { fileURLToPath } from 'node:url';
+// import path from 'node:path';
+
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname  = path.dirname(__filename);
+
+// const envPath = path.resolve(__dirname, '../../../.env');
 
 
 const TOKEN = process.env.WSP_TOKEN 
 const GRAPH_BASE = process.env.GRAPH_BASE 
 const TEMPLATE = process.env.CONFIRM_TEMPLATE_END
-console.log('TEMPLATE EN confirmTemplate.js:', TEMPLATE);
+//console.log('TEMPLATE EN confirmTemplate.js:', TEMPLATE);
 //console.log('GRAPH BASE EN confirmTemplate.js:', GRAPH_BASE);
 //console.log('TOKEN EN confirmTemplate.js:', TOKEN);
 
+export function rellenadoDatos (nombrePaciente, fechaCita, horaCita, numeroPaciente) {
+    
+    const payload = {
+        messaging_product: "whatsapp",
+        to: numeroPaciente, 
+        type: "template",
+        template: {
+            name: TEMPLATE, 
+            language: { code: "es" },        
+            components: [
+            {
+                type: "body",
+                parameters: [
+                { type: "text", text: nombrePaciente },
+                { type: "text", text: fechaCita },
+                { type: "text", text: horaCita },
+                ]
+            }
+            ]
+        }
+        };
+    return JSON.stringify(payload)
+}
+/*
 export function rellenadoDatos (nombrePaciente, especialidad, fechaCita, horaCita, numeroPaciente) {
     
     const payload = {
@@ -37,7 +69,7 @@ export function rellenadoDatos (nombrePaciente, especialidad, fechaCita, horaCit
         };
     return JSON.stringify(payload)
 }
-
+*/
 /*
 export async function sendConfirmation(datosCitas) {
    
@@ -53,7 +85,7 @@ export async function sendConfirmation(datosCitas) {
     datosCitas.forEach(async cita => {  //Aca se itera por cada cita en el array de citas para enviar el mensaje individualmente
       
       
-      
+      console.log("fetch graph_base",GRAPH_BASE);
       const response = await fetch(`${GRAPH_BASE}/messages`, {
       method: "POST",
       headers: {
@@ -64,9 +96,9 @@ export async function sendConfirmation(datosCitas) {
       
   
       });
-    
+      
       const data = await response.json();
-      //console.log("Respuesta de Meta: al enviar plantilla", data);
+      console.log("Respuesta de Meta: al enviar plantilla", data);
       //Con la data se puede guardar el ID del mensaje enviado en la base de datos de las citas para asociar el id y el mensaje
       const wamid_envio = data.messages[0].id;
       const idCita = cita.id; //Aca se obtiene la id de la cita actual en la iteracion

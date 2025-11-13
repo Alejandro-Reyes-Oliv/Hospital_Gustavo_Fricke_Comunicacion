@@ -22,12 +22,15 @@ enum EstadoCita {
   pendiente
   confirmada
   cancelada
+  enviado
+  recibido
+  leido
 }
 
 model Cita {
   id         Int        @id @default(autoincrement())
   doctorId   Int
-  fecha_hora DateTime
+  fecha_hora DateTime @db.Timestamptz(6)
   estado     EstadoCita @default(pendiente)
 
   paciente_nombre   String
@@ -58,7 +61,7 @@ model CitaRecordatorio {
   tipo            String // 6m | 1m | 1w | 1d | manual
   programado_para DateTime // timestamp local (sin zona)
   estado          String    @default("pendiente") // pendiente | enviado | error
-  enviado_en      DateTime?
+  enviado_en      DateTime? 
   canal           String?
   intentos        Int       @default(0)
   error_ultimo    String?
@@ -160,8 +163,8 @@ model CitaConfirmation {
   lastReplyText     String?
   expiresAt         DateTime? // (opcional) ventana de validez
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt 
 
   @@index([confirmationMsgId])
   @@index([lastReplyMsgId])

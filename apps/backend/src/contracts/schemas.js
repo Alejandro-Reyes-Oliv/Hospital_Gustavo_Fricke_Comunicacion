@@ -37,7 +37,7 @@ export const CitaDTO = z.object({
   medicoId: z.string(),
   nombreMedico: z.string(),
   especialidadMedico: z.string(),
-  estadoCita: z.enum(["pendiente", "confirmada", "cancelada"]),
+  estadoCita: z.enum(["pendiente", "confirmada", "cancelada", "enviado", "recibido", "leido"]),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
 });
@@ -50,11 +50,12 @@ export const CitaCreateDTO = z.object({
   medicoId: z.string().min(1),
   estadoCita: z.enum(["pendiente", "confirmada", "cancelada"]).optional(),
 });
+//console.log("las weas que llega en CitaCreateDTO: ", CitaCreateDTO);
 export const CitaUpdateDTO = CitaCreateDTO.partial();
 
 export const CitaListQuery = z.object({
   search: z.string().optional(),
-  estado: z.enum(["pendiente", "confirmada", "cancelada"]).optional(),
+  estado: z.enum(["pendiente", "confirmada", "cancelada", "enviado", "recibido", "leido"]).optional(),
   medicoId: z.string().optional(),
   from: z.string().optional(),
   to: z.string().optional(),

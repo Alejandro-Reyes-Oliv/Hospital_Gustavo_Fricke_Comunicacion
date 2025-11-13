@@ -1,7 +1,7 @@
 // apps/backend/src/services/bot.service.js
 import crypto from "crypto";
 import { prisma } from "../config/prisma.js";
-import { enviarRecordatorio } from "../../../bot-gateway/Prueba-05.js";
+//import { enviarRecordatorio } from "../../../bot-gateway/Prueba-05.js";
 
 /* ===================== Utils ===================== */
 function toE164Cl(raw) {
