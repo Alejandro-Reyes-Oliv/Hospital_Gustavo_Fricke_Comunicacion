@@ -1,7 +1,7 @@
 //Funcion que envia el mensaje a traves de la API de Meta
 //Entradas: payload: objeto con el cuerpo del mensaje a enviar
 
-process.loadEnvFile('../../.env');
+process.loadEnvFile('../../../.env');
 
 const TOKEN = process.env.WSP_TOKEN
 const GRAPH_BASE = process.env.GRAPH_BASE

@@ -1,6 +1,6 @@
 //Plantilla con informacion para la cita medica (Una vez confirmada la asistencia) via WhatsApp usando la API de Meta
 //entradas: datosCita(fecha_hora, numero_telefono)
-process.loadEnvFile('../../.env');
+process.loadEnvFile('../../../.env');
 
 const TOKEN = process.env.WSP_TOKEN 
 const GRAPH_BASE = process.env.GRAPH_BASE 

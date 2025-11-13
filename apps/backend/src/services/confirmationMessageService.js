@@ -4,7 +4,7 @@ import {prisma} from '../config/prisma.js';
 import { styleText } from 'node:util';
 import { rellenadoDatos } from '../../../bot-gateway/templates/confirmTemplate.js';
 import { rellenadoDatosInformacion } from '../../../bot-gateway/templates/informationTemplate.js';
-process.loadEnvFile('../../.env');
+process.loadEnvFile('../../../.env');
 //----------------------------------------Obtencion de datos de cita-------------------------------------------
 //Funcion que obtiene los datos de la cita a traves del id de la cita
 //Entradas: ids = [id1, id2, id3...]  (Array de id's de las citas)
@@ -190,7 +190,7 @@ export async function cambiarEstadoCita(wamid_contexto, respuesta){
             
             const estadoActualCita = await obtenerEstadoCita(idCita.id); //Obtener el estado actual de la cita para evitar sobreescribir estados importantes ya que el flow es pendiente -> confirmada ó cancelada, si se recibe una no puede cambiarse a la otra
             console.log("Estado actual de la cita: ", estadoActualCita);
-            if (estadoActualCita != 'confirmada' && estadoActualCita != 'cancelada'){ //En este caso es cuando la cita aun no ha sido confirmada ni cancelada, se puede cambiar el estado
+            if (estadoActualCita != 'confirmada' && estadoActualCita != 'cancelada' && estadoActualCita != 'recordado'){ //En este caso es cuando la cita aun no ha sido confirmada ni cancelada, se puede cambiar el estado
                 await prisma.cita.update({
                     where: {id : idCita.id, paciente_rut: wamid_contexto }, //Buscar la cita por ID y por el wamid del mensaje al que se responde
                     data: { estado: respuestaMapeada }
@@ -251,7 +251,7 @@ export async function cambiarEstadoMensaje(wamid_enviado, estado){
 //Funcion que obtiene el estado de la cita a traves del ID de la cita
 //Entradas: idCita: ID de la cita
 //Salida: estado de la cita e.j 'pendiente', 'confirmada', 'cancelada', 'enviado', 'recibido', 'leido'
-async function obtenerEstadoCita(idCita){
+export async function obtenerEstadoCita(idCita){
     try{
         const cita = await prisma.cita.findUnique({
             where: {id: idCita},
