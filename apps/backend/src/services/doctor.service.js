@@ -1,8 +1,36 @@
+// apps/backend/src/services/doctor.service.js
 import { prisma } from "../config/prisma.js";
 import {
   enviarAvisoCancelacion,
   normalizaTelefonoCL,
 } from "../../../bot-gateway/templates/reagendar.js";
+
+// helper: distintas formas de "false"
+function isFalseyFlag(value) {
+  if (value === false) return true;
+  if (value === 0) return true;
+  if (typeof value === "string") {
+    const v = value.trim().toLowerCase();
+    if (["false", "0", "no", "off"].includes(v)) return true;
+    if (["inactivo", "inactive", "disabled"].includes(v)) return true;
+  }
+  return false;
+}
+
+// decide si este PATCH quiere deshabilitar al doctor
+function wantsDeactivate(data) {
+  if (!data || typeof data !== "object") return false;
+
+  if ("activo" in data && isFalseyFlag(data.activo)) return true;
+  if ("is_active" in data && isFalseyFlag(data.is_active)) return true;
+  if ("enabled" in data && isFalseyFlag(data.enabled)) return true;
+  if ("disabled" in data && isFalseyFlag(data.disabled)) return true;
+
+  if (typeof data.estado === "string" && isFalseyFlag(data.estado)) return true;
+  if (typeof data.status === "string" && isFalseyFlag(data.status)) return true;
+
+  return false;
+}
 
 export const DoctorService = {
   listar: async ({
@@ -42,9 +70,47 @@ export const DoctorService = {
       data,
     }),
 
-  // PATCH normal: no toca citas ni envíos (el flujo fuerte es DELETE)
+  /**
+   * PATCH /api/doctors/:id
+   *
+   * - Si el payload representa "deshabilitar" (activo=false, is_active=false, estado='inactivo', etc),
+   *   delega en eliminar():
+   *      • desactiva doctor
+   *      • cancela citas futuras
+   *      • envía WhatsApp
+   * - Si no, hace un update normal.
+   */
   actualizar: async (id, data) => {
     const doctorId = Number(id);
+
+    if (wantsDeactivate(data)) {
+      console.log(
+        `[DoctorService.actualizar] detectado deshabilitar via PATCH, delegando en eliminar (doctorId=${doctorId}, body=${JSON.stringify(
+          data
+        )})`
+      );
+
+      // si vienen otros campos aparte de "activo"/"estado"/etc., los persistimos antes
+      const {
+        activo,
+        is_active,
+        enabled,
+        disabled,
+        estado,
+        status,
+        ...rest
+      } = data;
+      if (Object.keys(rest).length > 0) {
+        await prisma.doctor.update({
+          where: { id: doctorId },
+          data: rest,
+        });
+      }
+
+      return DoctorService.eliminar(doctorId);
+    }
+
+    // PATCH normal (sin deshabilitar)
     return prisma.doctor.update({
       where: { id: doctorId },
       data,
@@ -62,7 +128,7 @@ export const DoctorService = {
     const doctorId = Number(id);
     const ahora = new Date();
 
-    // 1) Snapshot del doctor (para especialidad si la cita no tiene snapshot)
+    // 1) Snapshot del doctor
     const doctor = await prisma.doctor.findUnique({
       where: { id: doctorId },
     });
@@ -100,7 +166,7 @@ export const DoctorService = {
     });
 
     console.log(
-      `[DoctorService.eliminar] doctorId=${doctorId}, citas marcadas canceladas=${citas.length}`,
+      `[DoctorService.eliminar] doctorId=${doctorId}, citas marcadas canceladas=${citas.length}`
     );
 
     // 4) Enviar WhatsApp + registrar botMessage (fuera de la TX)
@@ -120,7 +186,6 @@ export const DoctorService = {
           especialidad,
         });
 
-        // Registrar mensaje saliente
         await prisma.botMessage.create({
           data: {
             citaId: c.id,
@@ -136,14 +201,14 @@ export const DoctorService = {
 
         enviados++;
         console.log(
-          `[DoctorService.eliminar] WhatsApp OK citaId=${c.id}, to=${to}, wamid=${wamid}`,
+          `[DoctorService.eliminar] WhatsApp OK citaId=${c.id}, to=${to}, wamid=${wamid}`
         );
       } catch (err) {
         fallidos++;
         console.error(
           `[DoctorService.eliminar] WhatsApp FAIL citaId=${c.id}, to=${to}, error=${String(
-            err?.message || err,
-          )}`,
+            err?.message || err
+          )}`
         );
 
         await prisma.botMessage.create({
@@ -165,7 +230,7 @@ export const DoctorService = {
     }
 
     console.log(
-      `[DoctorService.eliminar] doctorId=${doctorId}, enviados=${enviados}, fallidos=${fallidos}`,
+      `[DoctorService.eliminar] doctorId=${doctorId}, enviados=${enviados}, fallidos=${fallidos}`
     );
 
     return {
